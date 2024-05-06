@@ -1,5 +1,5 @@
 # TeamFortress Scripts
-This is a repository of all the TeamFortress scripts, which was a server I made a few years back.
+This is a repository of all the TeamFortress scripts, which was a server I made a few years back using Skript, a server plugin.
 
 Feel free to take anything and make your own server, though definitely credit me. 
 These scripts are kinda optimized, but I wouldn't count on it to run well on a free minehut server with any more than maybe 5 players.
