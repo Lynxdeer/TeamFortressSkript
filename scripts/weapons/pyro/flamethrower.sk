@@ -1,0 +1,125 @@
+on damage:
+	damager's tool's name is "&6Flamethrower"
+	damager's gamemode is not spectator
+	
+	cancel event
+
+on rightclick with crossbow:
+
+	player's tool's name is "&6Flamethrower"
+	player's gamemode is not spectator
+	
+	cancel event
+	
+	if getAmmo(player) is less than 1:
+		send title "&0" with subtitle "&cOut of Ammo" to player for 0 seconds with fadein 0 second and fade out 0.2 second
+		stop
+	set {_cd} to cooldown of player's tool for player
+	set {_h} to player's tool
+	
+	updateActionBar(player)
+	set player's tool to getItem("flamethrower")
+	
+	set cooldown of player's tool for player to 0.3 seconds
+	{_cd} <= 0 seconds
+	metadata value "fire" of player is not true
+	if clicked block is not set:
+		play sound "custom.weapon.flamethrower_start" with volume 0.7 at player for all players
+	while cooldown of player's tool for player is not 0 seconds:
+	
+		if player is offline:
+			stop loop
+		if player's gamemode is spectator:
+			stop loop
+		if {ammo::%player%} is less than 1:
+			stop loop
+		
+		set {_dmgtick} to true
+		loop 5 times:
+			if cooldown of player's tool for player <= 0 seconds:
+				stop loop
+			if player's gamemode is spectator:
+				stop loop
+			set {_loc} to location 1.5 meters above player's location
+			
+			loop 10 times:
+				set {_loc} to location 0.5 meters in front of {_loc}
+				loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+					isPassableBlock(block at {_loc}) is false
+					canPass({_loc}) is false
+					exit 2 sections
+				particle(flame, 4, 0.1, 0.3, 0.1, {_loc})
+				loop all entities where [hitbox(player, {_loc}) contains input]:
+					{_dmged::*} does not contain loop-entity
+					add loop-entity to {_dmged::*}
+					
+			#debug({_dmged::*})
+			loop {_dmged::*}:
+				{_dmgtick} is true
+				set {_e} to {_dmged::%loop-index%}
+				getTeam(player) is not getTeam({_e}) && {friendlyfire} is not true
+				set {_dmg} to 6.5
+				set {_falloff} to (distance between player and {_e})/2
+				if {_falloff} < 0.6:
+					set {_falloff} to 0.6
+				set {_dmg} to round({_dmg}/{_falloff})
+				tfdmg({_dmg}, {_e}, player)
+				ignite {_e} for 5 seconds
+			delete {_dmged::*}
+			
+			if {_dmgtick} is true:
+				set {_dmgtick} to false
+			else:
+				set {_dmgtick} to true
+				
+			wait 1 tick
+			
+		modifyAmmo(player, 1)
+		
+		
+		set metadata value "fire" of player to true
+		play sound "custom.weapon.flamethrower_loop" with volume 0.7 at player for all players
+		
+	set metadata value "fire" of player to false
+	
+	
+	
+on leftclick with crossbow:
+
+	player's tool's name is "&6Flamethrower"
+	player's gamemode is not spectator
+	
+	if {ammo::%player%} is less than 1:
+		send title "&0" with subtitle "&cOut of Ammo" to player for 0 seconds with fadein 0 second and fade out 0.2 second
+		stop
+	modifyAmmo(player, 20)
+	
+	cooldown of player's tool for player <= 0 seconds
+	set cooldown of player's tool for player to 0.75 second
+	cancel event
+	
+	set {_loc} to location 1.5 meters in front of player's head location
+	particle(sweep_attack, 1, 0, 0, 0, {_loc})
+	particle(sweep_attack, 1, 0, 0, 0, location 0.3 meters above {_loc})
+	particle(sweep_attack, 1, 0, 0, 0, location 0.3 meters below {_loc})
+	play sound "custom.weapon.airblast" with volume 0.5 at player for all players
+	loop entities in radius 2 around {_loc}:
+		loop-entity is not player
+		if getTeam(player) is not getTeam(loop-entity):
+			set {_v} to vector from player to loop-entity
+			set loop-entity's velocity to vector 0, 0, 0
+			push loop-entity upwards with force 0.5
+			push loop-entity {_v} with force 2
+		else:
+			if loop-entity is burning:
+				extinguish loop-entity
+				heal player by 2
+				play sound "custom.weapon.airblast" with volume 0.7 at loop-entity for all players
+				
+	add {_loc} to {deflect::*}
+	wait 0.5 seconds
+	remove {_loc} from {deflect::*}
+	
+	
+	
+	

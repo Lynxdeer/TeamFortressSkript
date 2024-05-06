@@ -1,0 +1,50 @@
+command /giveresistance [<text>]:
+	permission: op
+	permission message: &cno
+	trigger:
+		apply resistance 10 without particles to player for 999 days
+		set metadata value "ammo" of player to 99999
+		send "&6You have been given resistance and your ammo has been set to 99999."
+	
+command /gmc [<offline player>] [<text>]:
+	permission: op
+	permission message: &cno
+	trigger:
+		if arg-1 is not set:
+			send "&aYour gamemode has been set to creative."
+			set player's gamemode to creative
+			stop
+		if arg-1 is offline:
+			send "&cThis player is offline!"
+			stop
+		send "&c%arg-1%&c's gamemode was set to creative by %player%." to all players where [input is op]
+		set arg-1's gamemode to creative
+
+command /gma [<offline player>] [<text>]:
+	permission: op
+	permission message: &cno
+	aliases: /gms
+	trigger:
+		if arg-1 is not set:
+			send "&aYour gamemode has been set to adventure."
+			set player's gamemode to adventure
+			stop
+		if arg-1 is offline:
+			send "&cThis player is offline!"
+			stop
+		send "&a%arg-1%&a's gamemode was set to adventure by %player%." to all players where [input is op]
+		set arg-1's gamemode to adventure
+
+command /gmsp [<offline player>] [<text>]:
+	permission: op
+	permission message: &cno
+	trigger:
+		if arg-1 is not set:
+			send "&aYour gamemode has been set to spectator."
+			set player's gamemode to spectator
+			stop
+		if arg-1 is offline:
+			send "&cThis player is offline!"
+			stop
+		send "&a%arg-1%&a's gamemode was set to spectator by %player%." to all players where [input is op]
+		set arg-1's gamemode to spectator

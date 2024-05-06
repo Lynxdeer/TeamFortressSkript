@@ -1,0 +1,126 @@
+on region enter:
+	player's gamemode is not creative or spectator
+	if "%event-region%" starts with "redspawn":
+		getTeam(player) is "blue"
+		send "&cYou cannot go into the enemy spawn!"
+		kill player
+		
+	if "%event-region%" starts with "bluespawn":
+		getTeam(player) is "red"
+		send "&cYou cannot go into the enemy spawn!"
+		kill player
+		
+function updateTeamRanks():
+	loop all players:
+		set loop-player's suffix to "&7[&f%getClassSB(loop-player)%&7]"
+		{c::%loop-player%} is not 9
+		set {_i} to leather chestplate 
+		dye {_i} getTeam(loop-player) parsed as color
+		set loop-player's helmet to scute with custom model data 1001 named "&dParty Hat" if {c::%loop-player%} is not 8
+		set loop-player's helmet to air if {c::%loop-player%} is 8 && (type of (loop-player's helmet)) is not carved pumpkin
+		set loop-player's chestplate to {_i}
+		set loop-player's prefix to getTeamColor(loop-player)
+		
+		
+on inventory click:
+	type of event-item is leather chestplate
+	player's gamemode is not creative
+	cancel event
+		
+every 10 seconds:
+	updateTeamRanks()
+		
+command /scrambleteams [<text>]:
+	permission: op
+	permission message: &cno
+	trigger:
+		scrambleTeams()
+
+function scrambleTeams():
+	delete {red::*}
+	delete {blue::*}
+	set {_picks::*} to all players
+	set {_picks::*} to shuffled {_picks::*}
+		
+	loop {_picks::*}:
+		if (size of {red::*}) = (size of {blue::*}):
+			add {_picks::%loop-index%} to {red::*}
+			continue
+		if (size of {red::*}) > (size of {blue::*}):
+			add {_picks::%loop-index%} to {blue::*}
+		
+	broadcast "%nl%&6&lTEAMS HAVE BEEN SCRAMBLED"
+	broadcast "&cRed:"
+	loop {red::*}:
+		broadcast "&f- %loop-value%"
+	broadcast "&9Blue: "
+	loop {blue::*}:
+		broadcast "&f- %loop-value%"
+	broadcast ""
+	updateTeamRanks()
+
+command /switchteam:
+	cooldown: 20 seconds
+	cooldown message: &cPlease wait %remaining time%&c before changing teams again!
+	cooldown bypass: op
+	trigger:
+			
+		
+		
+		if {red::*} contains player:
+			if {bluetime} < 61:
+				{capstate} is not false
+				send "&cYou cannot switch teams in the last minute of the round!"
+				stop
+			if size of {red::*} <= size of {blue::*}:
+				send "&cYou cannot switch teams as it would become unbalanced!"
+				stop
+			send "&9Switched to blue."
+			remove player from {red::*}
+			add player to {blue::*}
+			set {_stop} to true
+			
+		if {blue::*} contains player:
+			{_stop} is not true
+			if {redtime} < 61:
+				{capstate} is not false
+				send "&cYou cannot switch teams in the last minute of the round!"
+				stop
+			if size of {blue::*} <= size of {red::*}:
+				send "&cYou cannot switch teams as it would become unbalanced!"
+				stop
+			send "&cSwitched to red."
+			remove player from {blue::*}
+			add player to {red::*}
+			
+		kill the player
+		updateTeamRanks()
+		
+on tab complete:
+	player is op
+	event-string is "/team"
+	set tab completions for position 1 to "add" and "switch"
+	set tab completions for position 3 to "red" and "blue"
+			
+command /team [<text>] [<player>] [<text>]:
+	permission: op
+	permission message: &cno
+	trigger:
+		if arg-1 is "add":
+			send "Added %arg-2% to %arg-3%"
+			if arg-3 is "red":
+				add arg-2 to {red::*}
+			if arg-3 is "blue":
+				add arg-2 to {blue::*}
+				
+		if arg-1 is "switch":
+			send "Swapped %arg-2%'s team"
+			if {red::*} contains arg-2:
+				remove arg-2 from {red::*}
+				add arg-2 to {blue::*}
+				exit 2 sections
+			if {blue::*} contains arg-2:
+				remove arg-2 from {blue::*}
+				add arg-2 to {red::*}
+				
+		updateTeamRanks()

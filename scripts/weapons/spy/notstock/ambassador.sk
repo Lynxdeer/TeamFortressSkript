@@ -1,0 +1,50 @@
+on rightclick with crossbow:
+
+	player's tool's name is "&6Ambassador"
+	player's gamemode is not spectator
+	
+	cancel event
+	
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 0.5 seconds
+	
+	{ammo::%player%} is not less than 8
+	modifyAmmo(player, 8)
+	
+	updateActionBar(player)
+	set player's tool to getItem("ambassador")
+	
+	set {_loc} to location 1.6 meters above player
+		
+	play sound "custom.weapon.revolver_shoot" at volume 0.3 at player for all players
+	undisguise(player)
+	
+	set {_loc} to location 1.6 meters above location of player
+	set {_loc}'s pitch to {_loc}'s pitch + (random number between -2.5 and 2.5)
+	set {_loc}'s yaw to {_loc}'s yaw + (random number between -2.5 and 2.5)
+	loop 60 times:
+		loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+			isPassableBlock(loop-block) is false
+			canPass({_loc}) is false
+			exit 2 sections
+
+		set {_ent::*} to hitbox(player, {_loc})
+		loop all entities where [{_ent::*} contains input]:
+			loop-entity is not the player
+			add loop-entity to {_dmged::*} if distance between {_loc} and loop-entity's head location is not less than 1.1
+			add loop-entity to {_headshot::*} if distance between {_loc} and loop-entity's head location is less than 1.1
+			set {_falloff} to 10/distance between loop-entity and player
+			set {_falloff} to 1 if {_falloff} is more than 1
+			
+		loop {_dmged::*}:
+			tfdmg(34, {_dmged::%loop-index%}, player)
+			exit 2 sections
+		loop {_headshot::*}:
+			tfdmg(102*{_falloff}, {_headshot::%loop-index%}, player, 1)
+			exit 2 sections
+				
+		set {_loc} to location 0.5 meters in front of {_loc}
+		particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+			
+			
+			

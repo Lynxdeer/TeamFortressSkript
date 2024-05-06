@@ -1,0 +1,235 @@
+import:
+	org.bukkit.boss.BarColor
+
+on load:
+	set {point.harvest} to location at 29, 72, and 65 in world "Harvest"
+	set {capture} to 0
+	set {bluetime} to 180
+	set {redtime} to 180
+	delete {overtime}
+
+function getGameType(m: world) :: text:
+	set {_t} to "%{_m}%"
+	if {_t} starts with "pl":
+		return "Payload"
+	if {_t} starts with "koth" || {_t} is "Harvest":
+		return "KOTH"
+		
+
+command /restartgame [<text>]:
+	permission: op
+	permission message: &cInsfufficient permissions!
+	trigger:
+		send "&6Restarted the game."
+		restartGame()
+	
+command /togglecapture [<text>]:
+	permission: op
+	permission message: &cInsfufficient permissions!
+	trigger:
+		if {capstate} is false:
+			set {capstate} to true
+			send "&aCapture point has been enabled."
+			stop
+		set {capstate} to false
+		send "&cCapture point has been disabled."
+	
+function restartGame():
+	set {bluetime} to 180
+	set {redtime} to 180
+	set {capture} to 0
+	scrambleTeams()
+	loop all entities where [input is a zombie]:
+		kill loop-entity
+		delete loop-entity
+	loop all players:
+		if loop-player's gamemode is not creative:
+			reveal loop-player to all players
+		delete {hassentry::%loop-player%}
+		delete {hasdispenser::%loop-player%}
+		delete {uber::%loop-player%}
+		
+		{c::%loop-player%} is set
+		heal the loop-player
+		set metadata value "ammo" of loop-player to 200
+		if loop-player is not op:
+			set loop-player's gamemode to adventure
+		apply slowness 8 without particles to loop-player for 5 seconds
+		apply jump boost 140 without particles to loop-player for 5 seconds
+		if {red::*} contains loop-player:
+			set {_spawnloc} to location at -15, 71, and 56 in loop-player's world
+			loop blocks in radius 2 around {_spawnloc}:
+				loop-block is jungle planks
+				block above loop-block is air
+				add location at loop-block to {_rand::*}
+			set {_fsloc} to {_rand::%random integer between 1 and size of {_rand::*}%}
+			set yaw of {_fsloc} to -90
+			
+		if {blue::*} contains loop-player:
+			set {_spawnloc} to location at 73, 71, and 74 in loop-player's world
+			loop blocks in radius 2 around {_spawnloc}:
+				loop-block is cyan terracotta
+				block above loop-block is air
+				add location at loop-block to {_rand::*}
+			set {_fsloc} to {_rand::%random integer between 1 and size of {_rand::*}%}
+			set yaw of {_fsloc} to 90
+		teleport loop-player above {_fsloc}
+		delete {_fsloc}
+		delete {_rand::*}
+	
+	
+# Idk how to do this besides this, maybe regions
+# However I dont wanna use regions it would be stupid
+every 10 ticks:
+
+	if {capstate} is false:
+		set {_bmessage} to "&e&lPoint disabled"
+		{bossbar}.setColor(BarColor.YELLOW)
+		{bossbar}.setTitle({_bmessage})
+		stop
+	
+	loop all players where [distance between input and {point.harvest} is less than 4]:
+	
+		loop-player's gamemode is not spectator
+		
+		# Red = Subtract, Blue = Add, 0 = none
+
+		if {red::*} contains loop-player:
+			isDisguised(loop-player) is false
+			add loop-player to {_cap::*}
+		if {blue::*} contains loop-player:
+			isDisguised(loop-player) is false
+			add loop-player to {_capb::*}
+			
+	if size of {_cap::*} > size of {_capb::*}: # red
+		size of {_cap::*} > 0
+		set {_t} to -1
+		set {_tn} to "red"
+		remove 1 from {capture} if {capture} > -15
+	else if size of {_cap::*} < size of {_capb::*}: # blue
+		size of {_capb::*} > 0
+		set {_t} to 1
+		set {_tn} to "blue"
+		add 1 to {capture} if {capture} < 15
+	
+	
+	if {capture} is 0:
+		size of {_capb::*} > 0 || size of {_cap::*} > 0
+		set {capture} to {_t} * 15
+		play sound "custom.scorebell" to all players
+		play sound "custom.announcer.we_captured_control" to all players where [getTeam(input) is {_tn}]
+		play sound "custom.announcer.we_lost_control" to all players where [getTeam(input) is not {_tn}]
+		if {_t} is 1 && {bluetime} <= 0:
+			delete {overtime}
+		if {_t} is -1 && {redtime} <= 0:
+			delete {overtime}
+		
+	if {capture} is more than 0:
+		set {_color} to "&9"
+		
+	if {capture} is less than 0:
+		set {_color} to "&c"
+	
+		
+	set {_curtext} to "|"
+	set {_unbarsn} to 15 - abs({capture})
+	set {_barsn} to abs({capture})
+	
+	set {_bars} to ""
+	set {_unbars} to ""
+	
+	loop {_barsn} times:
+		set {_bars} to "%{_bars}%|"
+	loop {_unbarsn} times:
+		set {_unbars} to "%{_unbars}%|"
+	send title "&0" with subtitle "&7[ %colored {_color}%%{_bars}%&8%{_unbars}% &7]" to all players where [distance between input and {point.harvest} is less than 4] for 0.6 seconds with fadein 0 second and fade out 0 second
+	
+	
+	
+	
+	if {capture} is 0:
+		{capstate} is not false
+		{bossbar}.setColor(BarColor.WHITE)
+		set {_bmessage} to "&7%timeformat({redtime})% &8| &7%timeformat({bluetime})%"
+	if {capture} is more than 0:
+		{capstate} is not false
+		{bossbar}.setColor(BarColor.BLUE)
+		remove 0.5 from {bluetime} if {bluetime} > 0
+		if {_t} is -1 && {bluetime} is 0:
+			set {overtime} to true
+		set {_bmessage} to "&7%timeformat({redtime})% &8| &9&l%timeformat({bluetime})%"
+		if {overtime} is true:
+			set {_bmessage} to "&7%timeformat({redtime})% &8[&6&lOVERTIME&8] &9&l%timeformat({bluetime})%"
+	if {capture} is less than 0:
+		{capstate} is not false
+		remove 0.5 from {redtime} if {redtime} > 0
+		if {_t} is 1 && {redtime} is 0:
+			set {overtime} to true
+		{bossbar}.setColor(BarColor.RED)
+		set {_bmessage} to "&c&l%timeformat({redtime})% &8| &7%timeformat({bluetime})%"
+		if {overtime} is true:
+			set {_bmessage} to "&c&l%timeformat({redtime})% &8[&6&lOVERTIME&8] &7%timeformat({bluetime})%"
+		
+	{bossbar}.setTitle({_bmessage})
+		
+		
+
+	if {capture} is more than 0:
+		loop blocks in radius 4 around {point.harvest}:
+			loop-block is light gray wool or red wool
+			set loop-block to blue wool
+		set block below {point.harvest} to blue stained glass
+		set block 2 meters below {point.harvest} to blue concrete powder
+			
+	if {capture} is less than 0:
+		loop blocks in radius 4 around {point.harvest}:
+			loop-block is light gray wool or blue wool
+			set loop-block to red wool
+		set block below {point.harvest} to red stained glass
+		set block 2 meters below {point.harvest} to red concrete powder
+		
+	if {capture} is 0:
+		loop blocks in radius 4 around {point.harvest}:
+			loop-block is red wool or blue wool
+			set loop-block to light gray wool
+		set block below {point.harvest} to gray stained glass
+		set block 2 meters below {point.harvest} to gray concrete powder
+	
+	
+	
+	
+		
+	{overtime} is not true
+	if {bluetime} <= 0:
+		broadcast ""
+		broadcast "&9&lBLUE VICTORY"
+		broadcast ""
+		loop all players:
+			if {blue::*} contains loop-player:
+				send title "&0" with subtitle "&7&k|| &9VICTORY &7&k||" to loop-player for 5 seconds with fadein 0 second and fade out 3 second
+				play sound "custom.announcer.victory" to loop-player
+			if {red::*} contains loop-player:
+				send title "&0" with subtitle "&7&k|| &9LOSS &7&k||" to loop-player for 5 seconds with fadein 0 second and fade out 3 second
+				play sound "custom.announcer.loss" to loop-player
+			
+	if {redtime} <= 0:
+		broadcast ""
+		broadcast "&c&lRED VICTORY"
+		broadcast ""
+		loop all players:
+			if {red::*} contains loop-player:
+				send title "&0" with subtitle "&7&k|| &cVICTORY &7&k||" to loop-player for 5 seconds with fadein 0 second and fade out 3 second
+				play sound "custom.announcer.victory" to loop-player
+			if {blue::*} contains loop-player:
+				send title "&0" with subtitle "&7&k|| &cLOSS &7&k||" to loop-player for 5 seconds with fadein 0 second and fade out 3 second
+				play sound "custom.announcer.loss" to loop-player
+		
+	wait 1 tick
+	{bluetime} <= 0 || {redtime} <= 0
+	delete {overtime}
+	restartGame()
+				
+				
+				
+				
+				

@@ -1,0 +1,13 @@
+on command "stop":
+	player is op
+	executor is a player
+	cancel event
+	send "&cDo you really want to do this? Only use /stop in emergencies! Use /restart to restart the server instead of /stop!"
+	send formatted "<tooltip:&eYes, the server is like being hacked or smth><run command:/stopserverpls>&6[Click to Confirm]<reset>"
+
+on command "stopserverpls":
+	player has the permission "*"
+	cancel event
+	send "&6Aight bud, time to stop."
+	wait 5 ticks
+	stop the server

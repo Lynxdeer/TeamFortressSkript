@@ -1,0 +1,202 @@
+on shoot:
+	cancel event
+	
+on swap hand item:
+	cancel event
+
+on damage:
+	damage cause is fall
+	victim is player
+	remove 1 from damage
+	if damage <= 0:
+		cancel event
+		stop
+	set damage to damage/4
+	
+command /togglefriendlyfire [<text>]:
+	permission: op
+	permission message: &cno
+	trigger:
+		if {friendlyfire} is true:
+			set {friendlyfire} to false
+			send "&cToggled friendly fire off."
+			stop
+		if {friendlyfire} is false:
+			set {friendlyfire} to true
+			send "&aToggled friendly fire on."
+			
+command /toggleinstantrespawn [<text>]:
+	permission: op
+	permission message: &cno
+	trigger:
+		if {instarespawn} is true:
+			set {instarespawn} to false
+			send "&cToggled instant respawn off."
+			stop
+		if {instarespawn} is false:
+			set {instarespawn} to true
+			send "&aToggled instant respawn on."
+
+function tfdmg(d: number, p: entity, a: entity, crit: integer = 0):
+	if "%region at {_p}%" starts with "redspawn":
+		getTeam({_p}) is "red"
+		stop
+	if "%region at {_p}%" starts with "bluespawn":
+		getTeam({_p}) is "blue"
+		stop
+		
+	entityIsProper({_p}) is true
+	if {friendlyfire} is not true:
+		getTeam({_p}) = getTeam({_a})
+		{_p} is not {_a}
+		stop
+	if {_p}'s gamemode is spectator:
+		stop
+	if {c::%{_p}%} is not set && {_p} is a player:
+		stop
+	if {_a}'s gamemode is spectator:
+		{_crit} is not 4 # sentry check
+		stop
+	if {_d} is less than 1:
+		stop
+		
+	if {_p}'s health <= 0:
+		set {_go} to false
+		
+	if {mfd::*} contains {_p} || {_crit} is 2: # Marked For Death / Mini Crits
+		{_crit} is not 1
+		set {_d} to {_d} * 1.35
+		set {_crit} to 2
+		
+	if {_crit} is 1:
+		play sound "custom.crit_hit" with volume 0.75 to {_a}
+		play sound "custom.crit_recieved" with volume 0.75 to {_p}
+		
+	set {_dmg} to {_d} / 10
+	
+	damage {_p} by {_dmg}
+	set {_p}'s invulnerability ticks to 0
+	if {_p} is not {_a} && {_crit} is not 5:
+		damageHologram({_p}, round({_d}), {_crit})
+	
+	{_go} is not false
+	if {_p}'s gamemode is spectator:
+	
+		broadcast "&6%{_a}% killed &6%{_p}%."
+		play sound "custom.killsound" with volume 0.75 to {_a}
+		if metadata value "scope" of {_p} is true:
+			unscope({_p})
+		{_p} is not {_a}
+		addAmmo({_a}, 100)
+		if getAmmo({_a}) is more than 200:
+			set metadata value "ammo" of {_a} to 200
+		send "&6+100 ammo" to {_a}
+		add 1 to {kills::%{_a}%} if {_p} and {_a} is a player
+		stop
+	
+	{_p} is not {_a}
+	{_crit} is not 5
+	play sound "custom.hitsound" with volume 0.75 to {_a}
+	
+function getKills(p: player) :: number:
+	if {kills::%{_p}%} is set:
+		return {kills::%{_p}%}
+		stop
+	return 0
+	
+command /stats [<offline player>]:
+	trigger:
+		arg-1 is not "*"
+		if arg-1 is set:
+			send ""
+			send "&6&l%arg-1%&6&l's STATS"
+			send ""
+			if arg-1 is offline:
+				send "&e%arg-1%&e's playtime: &cCannot get while offline"
+			else:
+				send "&e%arg-1%&e's playtime: %arg-1's time played%"
+			send "&e%arg-1%&e's kills: %getKills(arg-1)%"
+			send "&eFirst Joined: %arg-1's first login%"
+			send ""
+			stop
+		send ""
+		send "&3&lSTATS"
+		send ""
+		send "&3Playtime: %player's time played%"
+		send "&3Kills: %getKills(player)%"
+		send "&3First Joined: %player's first login%"
+		send ""
+	
+		
+on death:
+	cancel drops
+	victim is a player
+	cancel event
+	particleExtra(crit, 40, 0, 0, 0, victim's head location, 2)
+	set victim's gamemode to spectator
+	
+	if {c::%victim%} is 7:
+		set {uber::%victim%} to 0
+	if isDisguised(player):
+		undisguise(player)
+		
+	if {instarespawn} is not true:
+		set victim's gamemode to spectator
+		set {_rand} to random integer between 6 and 10
+		loop {_rand} times:
+			send title "&7" with subtitle "&fRespawn in: %{_rand}% &fseconds" to victim for 1.2 second with fadein 0 second and fade out 0 second
+			play sound "block.note_block.hat" to victim
+			remove 1 from {_rand}
+			wait 1 second
+		send "%getTeamColor(victim)%You have respawned!" to victim
+		
+	wait 1 tick
+	set victim's gamemode to adventure
+	respawnPlayer(victim)
+	play sound "block.note_block.pling" with pitch 2 to player
+	
+function respawnPlayer(p: player):
+	
+	if {_p}'s world is world "Harvest":
+		if {red::*} contains {_p}:
+			set {_spawnloc} to location at -15, 71, and 56 in {_p}'s world
+			add jungle planks to {_allowblocks::*}
+			set {_yaw} to -90
+		if {blue::*} contains {_p}:
+			set {_spawnloc} to location at 73, 71, and 74 in {_p}'s world
+			add cyan terracotta to {_allowblocks::*}
+			set {_yaw} to 90
+			
+	if {_p}'s world is world "ctf_2fort":
+		if {red::*} contains {_p}:
+			set {_spawnloc} to location at 134, 26, -198 in {_p}'s world
+			set {_yaw} to -90
+		if {blue::*} contains {_p}:
+			set {_spawnloc} to location at 202, 26, -163 in {_p}'s world
+			set {_yaw} to 90
+			
+	loop blocks in radius 2 around {_spawnloc}:
+		{_allowblocks::*} contains loop-block || size of {_allowblocks::*} is less than 1
+		block above loop-block is air
+		block 2 meters above loop-block is air
+		add location at loop-block to {_rand::*}
+	set {_fsloc} to {_rand::%random integer between 1 and size of {_rand::*}%}
+	set yaw of {_fsloc} to {_yaw}
+	teleport {_p} above {_fsloc}
+	set {_p}'s gamemode to adventure
+		
+	
+		
+	set metadata value "ammo" of {_p} to 200
+	if getTeam({_p}) is "null":
+		send "&&You were not on a team, so you were not respawned! Wait until next game." to {_p}
+		
+	wait 1 tick
+	if {c::%{_p}%} is 1:
+		set {_p}'s flight state to true
+		stop
+	set {_p}'s flight state to false
+		
+		
+		
+		

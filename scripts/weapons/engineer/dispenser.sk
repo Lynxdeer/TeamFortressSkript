@@ -1,0 +1,90 @@
+on quit:
+	delete {-sentryspot::%player%::*}
+	if {hassentry::%player%} is set:
+		kill (metadata value "dispenser" of player parsed as entity)
+	
+
+function buildDispenser(p: player, loc: location, health: number = 200):
+	{_p}'s gamemode is not spectator
+	set {_loc}'s pitch to 0
+	set {_loc}'s yaw to {_p}'s yaw
+	if block below {_loc} is air:
+		set {_loc} to location below {_loc}
+	if block at {_loc} is not air or grass or dead bush:
+		while block at {_loc} is not air or grass or dead bush:
+			set {_loc} to location above {_loc}
+	send "&eDispenser goin' up!" to {_p}
+	set {_team} to getTeam({_p})
+	set {_color} to getTeamColor({_p})
+	
+	spawn an adult zombie at {_loc}
+	set {_e} to last spawned zombie
+	set {_e}'s nbt to "{Silent:1,NoAI:1}"
+	
+	if {_team} is "red":
+		set helmet of {_e} to scute with custom model data 5
+	if {_team} is "blue":
+		set helmet of {_e} to scute with custom model data 6
+	if {_team} is "null":
+		set helmet of {_e} to dragon head
+		
+	set chestplate of {_e} to air
+	set leggings of {_e} to air
+	set boots of {_e} to air
+	
+	set {_hp} to {_health} / 10
+	set max health of {_e} to 20
+	set health of {_e} to {_hp}
+	set metadata value "builder" of {_e} to {_p}
+	set metadata value "dispenser" of {_p} to {_e}
+	delete {_e}'s vehicle if {_e}'s vehicle is set
+	set {_parloc} to location above {_e}
+	
+	set {_h} to 0
+	while (health of {_e} * 10) > {_h}:
+		add 2 to {_h}
+		if metadata value "buildspeed" of {_e} is true:
+			delete metadata value "buildspeed" of {_e}
+			add 10 to {_h}
+		set the display name of {_e} to "&7Building... &7(%{_h} * 0.5%&7%%) &8[%health of {_e} * 10%&8]"
+		wait 1 tick
+		
+	
+	while {_e} is alive:
+	
+		set {_health} to round({_e}'s health * 10)
+		if {_health} is more than 200:
+			set {_e}'s health to 20
+		if metadata value "sapped" of {_e} is set:
+			set the display name of {_e} to "&bSapping... &7(%{_health}%&7/200)"
+			play sound "custom.weapon.sapper" with volume 0.3 and pitch 1 at {_e} for all players
+			tfdmg(10, {_e}, metadata value "spysapper" of {_e}, 5)
+			set {_cont} to false
+		else:
+			set {_cont} to true
+		if {_cont} is not false:
+			set the display name of {_e} to "%{_color}%%{_p}%%{_color}%'s Dispenser &7(%{_health}%&7/200)"
+		
+		loop players in radius 2 around {_e}:
+			
+			{_team} is getTeam(loop-player)
+			heal loop-player by 0.4
+			addAmmo(loop-player, 4)
+			
+			
+			
+		wait 5 ticks
+		
+	delete {hasdispenser::%{_p}%}
+	play sound "custom.building_explode" with volume 0.1 at {_e} for all players
+	particleExtra(crit, 50, 0, 0, 0, {_e}, 0.1)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

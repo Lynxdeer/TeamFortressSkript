@@ -1,0 +1,13 @@
+command /kill [<text>]:
+	trigger:
+		player's gamemode is not spectator
+		broadcast "&6%player% &6bid farewell, cruel world!"
+		kill player
+		
+command /explode [<text>]:
+	trigger:
+		player's gamemode is not spectator
+		broadcast "&6%player% &6bid farewell, cruel world!"
+		kill player
+		particle(explosion_emitter, 1, 0.1, 0.1, 0.1, player)
+		play sound "custom.weapon.explode%random integer between 1 and 3%" at player for all players

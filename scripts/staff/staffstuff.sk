@@ -1,0 +1,76 @@
+command /setammo [<offline player>] [<number>]:
+	permission: op
+	trigger:
+		if arg-2 is set:
+			set metadata value "ammo" of arg-1 to arg-2
+			send "&aSet %arg-1%&a's ammo to %arg-2%&a."
+			stop
+		set metadata value "ammo" of player to ("%arg-1%" parsed as number)
+
+
+command /irename <text>:
+	aliases: /itemrename, /rename
+	permission: op
+	trigger:
+		send "&aRenamed your held item to ""%colored arg-1%"" "
+		set player's tool's name to colored arg-1
+
+command /relore <integer> <text>:
+	aliases: /itemrelore, /irelore, /setlore
+	permission: op
+	trigger:
+		send "&aRelored line %arg-1% &aof your held item to ""%colored arg-2%"" "
+		set line arg-1 of player's tool's lore to colored arg-2
+
+command /heal [<offline player>]:
+	permission: op
+	permission message: &cno
+	trigger:
+		if arg-1 is not set:
+			send "&aHealed yourself."
+			heal the player
+			set metadata value "ammo" of player to 200
+			stop
+		if arg-1 is offline:
+			send "&cThis player is offline!"
+			stop
+		heal arg-1
+		send "&aHealed %arg-1%&a."
+		set metadata value "ammo" of arg-1 to 200
+
+command /feed [<offline player>]:
+	permission: op
+	permission message: &cno
+	trigger:
+		if arg-1 is not set:
+			send "&aFed yourself."
+			feed the player
+			set player's saturation to 20
+			stop
+		if arg-1 is offline:
+			send "&cThis player is offline!"
+			stop
+		feed arg-1
+		set arg-1's saturation to 20
+		send "&aFed %arg-1%&a."
+
+command /invsee [<offline player>]:
+	permission: staff.invsee
+	permission message: &cno
+	trigger:
+		if arg-1 is "Lynxdeer":
+			send "&cno you suck"
+			strike lightning effect at player
+			damage the player by 1
+			ignite the player for 3 second
+			stop
+		open arg-1's inventory to player
+		send "&eOpened %arg-1%&e's inventory to you."
+		
+on break:
+	player's gamemode is not creative
+	cancel event
+	
+on place:
+	player's gamemode is not creative
+	cancel event

@@ -1,0 +1,28 @@
+on rightclick on soul lantern:
+	play sound "custom.healthpack" to player
+	if "%region at event-block%" contains "redspawn" or "bluespawn":
+		heal player
+		set metadata value "ammo" of player to 200
+		send "&aReplenished health and ammo."
+		stop
+	set event-block to air
+	
+	set {_reshp} to ceiling(((player's health + 2.5) - (player's max health)) * 10)
+	if {_reshp} is less than 0:
+		set {_reshp} to 0
+		
+	set {_resam} to ceiling(({ammo::%player%} + 50) - 200)
+	if {_resam} is less than 0:
+		set {_resam} to 100
+		
+	heal player by 2.5
+	addAmmo(player, 50)
+	if getAmmo(player) is more than 200:
+		set metadata value "ammo" of player to 200
+		
+	send "&a+%abs(25 - {_reshp})% Health"
+	send "&6+%abs(50 - {_resam})% Ammo"
+	wait 10 seconds
+	set event-block to soul lantern
+	updateActionBar(player)
+	

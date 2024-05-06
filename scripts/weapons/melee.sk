@@ -1,0 +1,98 @@
+on leftclick:
+	player's tool is an iron sword
+	player's gamemode is not spectator
+	cooldown of player's tool for player <= 0 seconds
+	set {_cd} to 0.8
+	if player's tool's name is "&6Market Gardener":
+		set {_cd} to {_cd} * 1.2
+	set the cooldown of player's tool for player to "%{_cd}% seconds" parsed as timespan
+	clicked entity is not set
+	if custom model data of player's tool is 1:
+		set the cooldown of player's tool for player to 0.5 seconds
+	play sound "custom.weapon.melee_swing" with volume 2 and pitch 1 at player's head location for all players
+
+on damage:
+	damage cause is attack or sweep attack
+	if damager's tool is not iron sword: #or air:
+		cancel event
+		stop
+	damager's gamemode is not spectator
+	cancel event
+	set {_crit} to 0
+	if damager's tool's name is "&6Knife" or "&6Conniver's Kunai":
+		stop
+	if damager's tool's name is "&6Market Gardener":
+		metadata value "rocketjumping" of damager is true
+		delete metadata value "rocketjumping" of damager
+		set {_cd} to {_cd} * 1.2
+		set {_crit} to 1
+	if damager's tool is air:
+		{c::%damager%} is not 5
+		stop
+	
+	if cooldown of damager's tool for damager > 0.2 seconds:
+		send title "&0" with subtitle "&cMelee isn't spammable" to damager for 0 seconds with fadein 0 second and fade out 0.25 second
+
+	cooldown of damager's tool for damager <= 0 seconds
+	
+	set {_dmg} to 65
+	set {_dmg} to 195 if {_crit} is 1
+	
+	
+	if custom model data of damager's tool is 1:
+		set {_dmg} to 35
+		set the cooldown of damager's tool for damager to 0.5 seconds
+		
+	if custom model data of damager's tool is 6:
+		victim's display name contains "'s Sentry" or "'s Dispenser" or "Building..." or "Sapping..."
+		victim's display name starts with getTeamColor(damager) || getTeam(metadata value "builder" of victim) is getTeam(damager)
+		
+		if victim's display name contains "Building...":
+			set metadata value "buildspeed" of victim to true
+			play sound "custom.weapon.wrench_success%random integer between 1 and 2%" at damager for all players
+			stop
+		if victim's display name contains "Sapping...":
+			set metadata value "sapped" of victim to metadata value "sapped" of victim - 1
+			set {_per} to (2 - metadata value "sapped" of victim) * 50
+			play sound "custom.hitsound" to damager
+			send title "&0" with subtitle "&bUnsapping &7[%{_per}%%%]" to damager for 0.1 seconds with fade in 0 second and fade out 0.5 second
+			if metadata value "sapped" of victim is less than 1:
+				delete metadata value "sapped" of victim
+				play sound "custom.weapon.sapper_removed" with volume 0.8 and pitch 1 at damager for all players
+			stop
+		set {_heal} to (victim's max health - victim's health) * 10
+		if {_heal} is more than 102:
+			set {_heal} to 102
+		set {_metalcost} to floor({_heal} / 3)
+		set {_metal} to {ammo::%damager%}
+		if {_metal} < {_metalcost}:
+			set {_heal} to {_metal} * 3
+			set {_metalcost} to {_metal}
+		
+		remove {_metalcost} from {ammo::%damager%}
+		heal victim by ({_heal} / 10)
+		set {_nodmg} to true
+		
+		if {_metalcost} is 0:
+			play sound "custom.weapon.wrench_fail" at damager for all players
+		else:
+			play sound "custom.weapon.wrench_success%random integer between 1 and 2%" at damager for all players
+			
+		
+	if custom model data of damager's tool is 7 or 10:
+		play sound "custom.weapon.ubersaw_hit" with volume 0.8 and pitch 1 at damager for all players
+		getTeam(damager) is not getTeam(victim)
+		add 25 to {uber::%damager%}
+		if {uber::%damager%} is more than 100:
+			set {uber::%damager%} to 100
+		
+	if custom model data of damager's tool is 9:
+		set {_dmg} to 40
+		
+	if custom model data of damager's tool is not 6 or 7 or 10:
+		play sound "custom.weapon.melee_hit" with volume 0.8 and pitch 1 at damager for all players
+	
+	
+	if {_nodmg} is true:
+		stop
+	tfdmg({_dmg}, victim, damager, {_crit})

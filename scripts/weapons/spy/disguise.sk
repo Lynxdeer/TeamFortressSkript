@@ -1,0 +1,48 @@
+function isDisguised(p: player) :: boolean:
+	if {_p}'s displayed skin is not {_p}'s skin:
+		return true
+		stop
+	return false
+
+function undisguise(p: player):
+	{_p}'s displayed skin is not {_p}'s skin
+	set {_p}'s displayed skin to {_p}'s skin
+	set {_p}'s nametag to "%{_p}%"
+	set {_p}'s prefix to getTeamColor({_p})
+	hide {_p} from all players
+	wait 1 tick
+	reveal {_p} to all players
+	stop
+
+on rightclick:
+	player's tool's name is "&6Disguise Kit"
+	player's gamemode is not spectator
+	
+	cancel event
+	
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 1 seconds
+	
+	set player's tool to getItem("disguisekit")
+	set {_disguises::*} to all players where [getTeamColor(input) is not getTeamColor(player)]
+	if isDisguised(player):
+		undisguise(player)
+		send "&eYou have undisguised." to player
+		stop
+	play sound "custom.spy_disguise" with volume 0.8 and pitch 1 at player's head location for all players
+	if size of {_disguises::*} is less than 1:
+		send "&cThere aren't any available disguise targets!"
+		stop
+
+	set {_range} to random integer between 1 and size of {_disguises::*} # (size of all players where [getTeamColor(input) is not getTeamColor(player)])
+	set {_dp} to {_disguises::%{_range}%}
+	
+	set player's displayed skin to {_dp}'s skin
+	set player's nametag to {_dp}'s nametag
+	set player's prefix to {_dp}'s prefix
+
+	send "&eYou have been disguised as %{_dp}%" to player
+	
+	hide player from all players
+	wait 1 tick
+	reveal player to all players

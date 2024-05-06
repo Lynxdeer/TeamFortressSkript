@@ -1,0 +1,88 @@
+on right click with scute:
+
+	line 1 of player's tool's lore starts with "&7nom nom nom nom nom"
+	player's gamemode is not spectator
+	
+	cancel event
+
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 30 seconds
+	set metadata value "consuming" of player to true
+	
+	loop 43 times:
+		if player's gamemode is spectator:
+			stop
+		if player is not online:
+			stop
+		play sound "entity.generic.eat" with volume 5 with pitch (random number between 0.5 and 2) at player for all players
+		apply slowness 10 without particles to player for 1 second
+		apply jump boost 150 without particles to player for 1 second
+		blockParticle(oak planks, 10, 0.1, 0.1, 0.1, location in front of player's head location)
+		blockParticle(green wool, 5, 0.1, 0.1, 0.1, location in front of player's head location)
+		blockParticle(red wool, 5, 0.1, 0.1, 0.1, location in front of player's head location)
+		blockParticle(brown wool, 5, 0.1, 0.1, 0.1, location in front of player's head location)
+		wait 2 ticks
+		
+	remove slowness from player
+	remove jump boost from player
+	play sound "entity.player.burp" with volume 5 with pitch (random number between 0.8 and 1.2) at player for all players
+	send "&a+150 Health"
+	delete metadata value "consuming" of player
+	heal player by 15
+	
+on left click with scute:
+
+	line 1 of player's tool's lore starts with "&7nom nom nom nom nom"
+	player's gamemode is not spectator
+	
+	cancel event
+
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 30 seconds
+	
+	set {_loc} to location 1 meter above player
+	set {_speed} to 4
+	set {_grav} to 0.4
+	set {_index} to size of {sticky::%player%::*} + 1
+	loop 100 times:
+
+		loop {_speed} times:
+			set {_loc} to location 0.5/{_speed} meters in front of {_loc}
+			set {_loc} to location {_grav}/{_speed} meters above {_loc}
+			remove 0.1/{_speed} from {_grav}
+		
+			particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+			particle(enchanted_hit, 1, 0.1, 0.1, 0.1, {_loc})
+		
+			set {_ent::*} to hitbox(player, {_loc})
+			
+			loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+				isPassableBlock(loop-block) is false
+				exit 3 sections
+				
+		wait 1 tick
+		
+	set {_i} to getItem("sandvich")
+	drop {_i} at {_loc}
+	
+on player pickup:
+	
+	name of event-item is "&6Sandvich"
+		
+	cancel event
+	delete (event-dropped item)
+	
+	play sound "custom.healthpack" to player
+	if player's inventory contains event-item:
+		set cooldown of event-item for player to 0 seconds
+		stop
+	heal event-entity by 15
+	healHologram(event-entity, 150)
+	send "&a+150 Health" to event-entity
+	
+		
+		
+		
+		
+	
+	

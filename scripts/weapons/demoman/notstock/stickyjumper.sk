@@ -1,0 +1,104 @@
+on right click with crossbow:
+
+	line 1 of player's tool's lore starts with "&7A no-damage stickybomb launcher that allows you to jump without blowing yourself up!"
+	player's gamemode is not spectator
+	
+	cancel event
+
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 0.6 seconds
+	
+	if size of {stickyj::%player%::*} >= 2:
+		send title "&0" with subtitle "&cMax Stickies Reached (2)" to player for 0 seconds with fadein 0 second and fade out 0.5 second
+		stop
+	
+	set player's tool to getItem("stickyjumper")
+	getAmmo(player) is not less than 1
+	modifyAmmo(player, 1)
+	
+	set {_loc} to location 1.6 meters above location of player
+	play sound "custom.weapon.jumper_shoot" with volume 0.4 at {_loc} for all players
+	set {_speed} to 2
+	set {_grav} to 0.6
+	set {_index} to size of {stickyj::%player%::*} + 1
+	while player is online:
+
+		loop {_speed} times:
+			set {_loc} to location 1/{_speed} meters in front of {_loc}
+			set {_loc} to location {_grav}/{_speed} meters above {_loc}
+			remove 0.1/{_speed} from {_grav}
+		
+			particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+			particle(enchanted_hit, 1, 0.1, 0.1, 0.1, {_loc})
+		
+			set {_ent::*} to hitbox(player, {_loc})
+		
+			loop {deflect::*}:
+				distance between {deflect::%loop-index%} and {_loc} is less than 2.5
+				set {_loc}'s yaw to {deflect::%loop-index%}'s yaw
+				set {_loc}'s pitch to {deflect::%loop-index%}'s pitch
+				add 1.5 to {_speed}
+				add 0.5 to {_grav}
+				delete {deflect::%loop-index%}
+				play sound "custom.weapon.airblast_projectile" with volume 0.5 at {_loc} for all players
+			
+			loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+				isPassableBlock(loop-block) is false
+				exit 3 sections
+				
+		wait 1 tick
+	
+	if isPassableBlock(block at {_loc}) is false:
+		isPassableBlock(block above {_loc}) is true
+		if block at {_loc} is slab:
+			"%block at {_loc}'s block data%" contains "type=bottom"
+			set {_loc} to location 0.2 meter above block at {_loc}
+			exit 2 sections
+		set {_loc} to location 0.5 meter above block at {_loc}
+	add {_loc} to {stickyj::%player%::*}
+	
+	while {stickyj::%player%::%{_index}%} is set:
+		if player's gamemode is spectator:
+			delete {stickyj::%player%::*}
+			stop loop
+		if player is not online:
+			delete {stickyj::%player%::*}
+			stop loop
+		particleColor(dust, 4, 0.1, 0.1, 0.1, {_loc}, orange)
+		wait 4 ticks
+	
+	
+on leftclick with crossbow:
+	
+	line 1 of player's tool's lore starts with "&7A no-damage stickybomb launcher that allows you to jump without blowing yourself up!"
+	player's gamemode is not spectator
+	cancel event
+	size of {stickyj::%player%::*} is more than 0
+
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 0.8 seconds
+	
+	
+	play sound "custom.weapon.stickybomb_det" with volume 0.5 at player for all players
+	
+	wait 5 ticks
+	
+	loop {stickyj::%player%::*}:
+		set {_loc} to {stickyj::%player%::%loop-index%}
+		particleExtra(smoke, 7, 0, 0, 0, {_loc}, 0.1)
+		particleExtra(cloud, 7, 0, 0, 0, {_loc}, 0.1)
+		play sound "custom.weapon.stickyjumper_explode" with volume 0.5 at {_loc} for all players
+		loop entities in radius 4 around {_loc}:
+		
+			loop-entity is player
+			
+			set {_d} to (1 / ((distance between loop-entity and {_loc} + 1) * 0.16))
+			set {_v} to vector from {_loc} to location above loop-entity
+			if {_d} is less than 1:
+				set {_d} to 1
+				
+			push loop-entity {_v} with force abs({_d})
+			
+	delete {stickyj::%player%::*}
+	
+	

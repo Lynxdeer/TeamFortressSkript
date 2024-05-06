@@ -1,0 +1,63 @@
+on consume:
+	event-item's name is "&eJarate"
+	player's gamemode is not spectator
+	cancel event
+	send "&eDID YOU JUST DRINK THE PISS"
+
+on rightclick with potion:
+	player's tool's name is "&eJarate"
+	player's gamemode is not spectator
+	
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 10 seconds
+	cancel event
+	
+	set {_chance} to random integer between 1 and 3
+	if {_chance} is 1:
+		send "&eBombs away!"
+	if {_chance} is 2:
+		send "&eJarate Incoming!"
+	if {_chance} is 3:
+		send "&eHeads up, jarate!"
+	set {_loc} to location 0.5 meters above location of player
+	play sound "minecraft:item.axe.scrape" with volume 1 and pitch 2 at {_loc} for all players where [input's world is player's world]
+	set {_grav} to 0.5
+	
+	loop 50 times:
+		set {_loc} to location 0.6 meter in front of {_loc}
+		set {_loc}'s world to player's world
+			
+		remove 0.1 from {_grav}
+		particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+		particle(enchanted_hit, 2, 0.1, 0.1, 0.1, {_loc})
+		set {_loc} to location {_grav} meters above {_loc}
+			
+		loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+			isPassableBlock(loop-block) is false
+			canPass({_loc}) is false
+			set {_stop} to true
+			play sound "minecraft:custom.weapon.jar_explode" with volume 2 and pitch 1 at {_loc} for all players
+			particleColor(dust, 100, 1.6, 0.3, 1.6, location above {_loc}, yellow)
+			loop entities in radius 4 around loop-block:
+				loop-entity's gamemode is not spectator or creative
+				if {friendlyfire} is not true || player is loop-entity:
+					getTeam(loop-entity) is getTeam(player)
+					extinguish loop-entity
+					continue
+				loop-entity is not player
+				jarateParticles(loop-entity)
+		if {_stop} is true:
+			stop loop
+		wait 1 tick
+				
+function jarateParticles(e: entity):
+	if {mfd::*} does not contain {_e}:
+		add {_e} to {mfd::*} # marked for death
+	loop 100 times:
+		if {_e}'s gamemode is spectator:
+			stop loop
+		if {_e} is not alive:
+			stop loop
+		particleColor(dust, 25, 0.5, 0.5, 0.5, location above {_e}, yellow)
+		wait 2 ticks
+	remove {_e} from {mfd::*}

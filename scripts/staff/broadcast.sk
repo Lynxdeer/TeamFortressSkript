@@ -1,0 +1,51 @@
+command /broadcast <text>:
+	usage: &cInvalid Usage! Usage: /broadcast (text)
+	permission: staff.broadcast
+	permission message: &cno
+	trigger:
+		broadcast ""
+		broadcast "&f%colored arg-1%"
+		broadcast ""
+		
+command /silbroadcast <text>:
+	usage: &cInvalid Usage! Usage: /silbroadcast (text)
+	permission: *
+	permission message: &cno
+	trigger:
+		if sender is not "Lynxdeer" or console:
+			send "&cno"
+			stop
+		broadcast "&f%colored arg-1%"
+
+every 2 minutes:
+	real online player count is more than 2
+	set {_num} to a random integer between 1 and 11
+	if {_num} is 1:
+		broadcast ""
+		broadcast " &aUse /report <player> if you believe someone is breaking the rules!"
+		broadcast ""
+		stop
+	if {_num} is 2:
+		broadcast ""
+		broadcast " &aEnjoying the server and have a discord? Use /discord to join the discord for updates on the server!"
+		broadcast ""
+	if {_num} is 4:
+		broadcast ""
+		broadcast " &aLook at the rules with /rules!"
+		broadcast ""
+		stop
+	if {_num} is 5:
+		broadcast ""
+		broadcast " &aIf you find a bug, please report it in ##bug-reports on the <hover:&eDo /discord!>&9&ndiscord<reset>&a!"
+		broadcast ""
+		stop
+	if {_num} is 6:
+		broadcast ""
+		broadcast " &aPlease do not hackusate in chat, use /report <player> instead!"
+		broadcast ""
+		stop
+	if {_num} is 7:
+		broadcast ""
+		broadcast " &aUse /kill or /explode for free diamond armor!"
+		broadcast ""
+		stop

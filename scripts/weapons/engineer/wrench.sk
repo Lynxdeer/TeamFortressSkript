@@ -1,0 +1,57 @@
+on rightclick with iron sword:
+
+	custom model data of player's tool is 6
+	player's gamemode is not spectator
+	clicked entity is zombie
+	cancel event
+	
+	set {_e} to clicked entity
+	{_e}'s display name contains "'s Sentry" or "'s Dispenser" or "'s Teleporter"
+	{_e}'s display name contains "%player%"
+	{_e}'s display name starts with getTeamColor(player)
+	
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 3 seconds
+	
+	set {_type} to 0
+	if {_e}'s display name contains "'s Sentry":
+		set {_type} to 1
+	if {_e}'s display name contains "'s Dispenser":
+		set {_type} to 2
+	if {_e}'s display name contains "'s Teleporter Entrance":
+		set {_type} to 3
+	if {_e}'s display name contains "'s Teleporter Exit":
+		set {_type} to 4
+		
+	set {_dnhp::*} to {_e}'s display name split at "("
+	set {_hp} to uncolored {_dnhp::2}
+	replace all "/200)" in {_hp} with ""
+	set {_hp} to {_hp} parsed as number
+		
+	if {_type} is 0:
+		send "&cYou cannot pick this up because the building you picked up was invalid!"
+		stop
+		
+	delete clicked entity
+	
+	if {_type} is 1:
+		set {_i} to bow named "&6Sentry"
+	if {_type} is 2:
+		set {_i} to dispenser named "&6Dispenser"
+	if {_type} is 3:
+		set {_i} to ender pearl named "&6Teleporter Entrance"
+	if {_type} is 4:
+		set {_i} to ender pearl named "&6Teleporter Exit"
+	set {_i}'s name to "%{_i}'s name% &7- %{_hp}%"
+	give player {_i}
+	while player's inventory contains {_i}:
+		set cooldown of crossbow for player to 1 second
+		set cooldown of scute for player to 1 second
+		set cooldown of iron sword for player to 1 second
+		wait 5 ticks
+		
+		
+		
+		
+		
+		

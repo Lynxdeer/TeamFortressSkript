@@ -1,0 +1,22 @@
+on command:
+	loop all players where [input has the permission "staff.cmdspy"]:
+		if sender is console:
+			send "&6Server &8| &f/%complete command%" to loop-player
+			stop
+		sender is not the loop-player
+		send "&6%player% &8| &f/%complete command%" to loop-player
+
+
+command /cspy:
+	permission: op
+	permission message: &cno
+	aliases: /cmdspy, /commandspy
+	trigger:
+		if player has the permission "staff.cmdspy":
+			send "&cTurned off cmdspy."
+			execute console command "lp user %player% permission set staff.cmdspy false"
+			stop
+		if player does not have the permission "staff.cmdspy":
+			send "&aTurned on cmdspy."
+			execute console command "lp user %player% permission set staff.cmdspy true"
+			stop

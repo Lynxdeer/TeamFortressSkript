@@ -1,0 +1,120 @@
+on tool change:
+	player's gamemode is not spectator
+	old tool's name is "&6Sniper Rifle"
+	if metadata value "scope" of player is true:
+		unscope(player)
+		stop
+		
+on inventory click:
+	event-slot is helmet slot of player
+	type of event-item is carved pumpkin
+	player's gamemode is not creative
+	cancel event
+
+on leftclick with crossbow:
+	
+	player's tool's name is "&6Sniper Rifle"
+	player's gamemode is not spectator
+	
+	cancel event
+	
+	play sound "item.spyglass.use" with volume 1 at player's location for all players
+	
+	if metadata value "scope" of player is true:
+		unscope(player)
+		stop
+		
+	metadata value "scope" of player is not true
+	scope(player)
+	
+function scope(p: player):
+	{_p}'s tool's name is "&6Sniper Rifle"
+	set metadata value "scopecharge" of {_p} to 0
+	if metadata value "scope" of {_p} is not true:
+		set {_p}'s tool to getItem("sniperscoped")
+		apply slowness 6 without particles to {_p} for 9999 seconds 
+		if type of {_p}'s helmet is air:
+			set {_p}'s helmet to carved pumpkin
+		set {_p}'s walk speed to 1
+		send title "&0" with subtitle "&0" to {_p} for 0 seconds
+		set metadata value "scope" of {_p} to true
+	while metadata value "scope" of {_p} is true:
+		add 5 to {_scope}
+		if {_scope} > 100:
+			set {_scope} to 100
+			{_alreadycharge} is not set
+			play sound "custom.recharged" with volume 1 and pitch 1 to {_p}
+			set {_alreadycharge} to true
+		set metadata value "acextra" of {_p} to formatted "&e<font:minecraft:scopefont>%{_scope}%"
+		set metadata value "scopecharge" of {_p} to {_scope}
+		wait 5 tick
+		
+function unscope(p: player):
+	{_p}'s tool's name is "&6Sniper Rifle"
+	if metadata value "scope" of {_p} is true:
+		set {_p}'s tool to getItem("sniper")
+		remove slowness from {_p}
+		delete metadata value "acextra" of {_p}
+		set {_p}'s walk speed to 0.2
+		delete metadata value "scope" of {_p}
+		if type of {_p}'s helmet is carved pumpkin:
+			set {_p}'s helmet to air
+
+on rightclick with crossbow:
+
+	player's tool's name is "&6Sniper Rifle"
+	player's gamemode is not spectator
+	
+	cancel event
+	
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 2 seconds
+	
+	{ammo::%player%} is not less than 8
+	modifyAmmo(player, 8)
+	
+	updateActionBar(player)
+	
+	set player's tool to getItem("sniper")
+	set {_loc} to location 1.6 meters above player
+	
+	if player is sneaking:
+		set {_loc} to location 1.4 meters above player
+		
+	play sound "custom.weapon.sniper_shoot" with pitch 1 at player's location for all players
+	
+	loop 200 times:
+			
+		set {_loc} to location 0.5 meters in front of {_loc}
+		particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+		
+		set {_dmg} to 50
+		loop all entities where [distance between input's head location and {_loc} is less than 0.55]:
+			loop-entity is not the player
+			entityIsProper(loop-entity) is true
+			if metadata value "scope" of player is true:
+				send title "&0" with subtitle "&3Headshot!" to player for 0.1 seconds with fade in 0 second and fade out 0.5 second
+				set {_dmg} to 150
+				set {_dmg} to {_dmg} * (1 + (metadata value "scopecharge" of player)/50) if metadata value "scopecharge" of player > 30
+				tfdmg({_dmg}, loop-entity, player, 1)
+			else:
+				send title "&0" with subtitle "&3Unscoped Headshot!" to player for 0.1 seconds with fade in 0 second and fade out 0.5 second
+				tfdmg({_dmg}, loop-entity, player)
+			exit 2 sections
+		loop all entities where [distance between input's location and {_loc} is less than 0.85 || distance between location 1 meter above input's location and {_loc} is less than 0.4]:
+			loop-entity is not the player
+			entityIsProper(loop-entity) is true
+			send title "&0" with subtitle "&3Bodyshot!" to player for 0.1 seconds with fade in 0 second and fade out 0.5 second
+			set {_dmg} to {_dmg} * (1 + (metadata value "scopecharge" of player)/50) if metadata value "scopecharge" of player > 30
+			tfdmg({_dmg}, loop-entity, player)
+			exit 2 sections
+			
+		loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+			isPassableBlock(block at {_loc}) is false
+			canPass({_loc}) is false
+			exit 2 sections
+			
+	unscope(player)
+	wait 20 ticks
+	play sound "custom.weapon.sniper_reload" with volume 10 and pitch 1 at player's location for all players
+	

@@ -1,0 +1,30 @@
+function particleWitch(count: number, v1: number, v2: number, v3: number, loc: location):
+	set {_world} to {_loc}'s world
+	set {_loc}'s world to {_world}
+	set {_vec} to vector {_v1}, {_v2}, {_v3}
+	draw {_count} of witch at {_loc} with offset {_vec} with extra 0 for all players where [input's world is {_loc}'s world]
+	
+function particle(particle: particle, count: number, v1: number, v2: number, v3: number, loc: location):
+	set {_world} to {_loc}'s world
+	set {_loc}'s world to {_world}
+	set {_vec} to vector {_v1}, {_v2}, {_v3}
+	draw {_count} of {_particle} at {_loc} with offset {_vec} with extra 0 for all players where [input's world is {_loc}'s world]
+	
+function particleExtra(particle: particle, count: number, v1: number, v2: number, v3: number, loc: location, extra: number):
+	set {_world} to {_loc}'s world
+	set {_loc}'s world to {_world}
+	set {_vec} to vector {_v1}, {_v2}, {_v3}
+	draw {_count} of {_particle} at {_loc} with offset {_vec} with extra {_extra} for all players where [input's world is {_loc}'s world]
+	
+function blockParticle(block: item, count: number, v1: number, v2: number, v3: number, loc: location):
+	set {_world} to {_loc}'s world
+	set {_loc}'s world to {_world}
+	set {_vec} to vector {_v1}, {_v2}, {_v3}
+	draw {_count} of block using {_block} at {_loc} with offset {_vec} with extra 0 for all players where [input's world is {_loc}'s world]
+	
+function particleColor(particle: particle, count: number, v1: number, v2: number, v3: number, loc: location, c: color):
+	set {_world} to {_loc}'s world
+	set {_loc}'s world to {_world}
+	set {_vec} to vector {_v1}, {_v2}, {_v3}
+	draw {_count} of {_particle} using dustOption({_c}, 1) at {_loc} with offset {_vec} with extra 0 for all players where [input's world is {_loc}'s world]
+	

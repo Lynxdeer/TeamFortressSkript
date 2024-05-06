@@ -1,0 +1,95 @@
+on rightclick with crossbow:
+
+	player's tool's name is "&6Minigun"
+	player's gamemode is not spectator
+	metadata value "consuming" of player is not true
+	
+	cancel event
+	
+	
+	if getAmmo(player) is less than 1:
+		send title "&0" with subtitle "&cOut of Ammo" to player for 0 seconds with fadein 0 second and fade out 0.2 second
+		play sound "custom.weapon.minigun_empty" with volume 0.5 at player for all players
+		stop
+		
+	set {_h} to player's tool
+	set {_cd} to cooldown of player's tool for player
+	
+	updateActionBar(player)
+	set player's tool to getItem("minigun")
+	
+	set cooldown of player's tool for player to 0.3 seconds
+	{_cd} <= 0 seconds
+	metadata value "fire" of player is not true
+	if clicked block is not set:
+		play sound "custom.weapon.minigun_wind_up" with volume 0.7 at player for all players
+	set metadata value "fire" of player to true
+	wait 0.8 seconds
+	while cooldown of player's tool for player is not 0 seconds:
+	
+		remove jump boost from player
+		apply jump boost 140 without particles to player for 1 second
+		set player's walk speed to 0.07
+		set {_loc} to location 1.6 meters above player
+		
+		if player is offline:
+			stop loop
+		if player's gamemode is spectator:
+			stop loop
+		if {ammo::%player%} is less than 1:
+			stop loop
+		
+		set {_shoottick} to true
+		loop 5 times:
+			if cooldown of player's tool for player <= 0 seconds:
+				stop loop
+			if player's gamemode is spectator:
+				stop loop
+				
+			set {_loc} to location 1.4 meters above player's location
+			add random number between -4 and 4 to {_loc}'s yaw
+			add random number between -4 and 4 to {_loc}'s pitch
+			if {_shoottick} is false:
+				set {_shoottick} to true
+				wait 1 tick
+				continue
+			set {_shoottick} to false
+			loop 60 times:
+				set {_loc} to location 0.5 meters in front of {_loc}
+				loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+					isPassableBlock(block at {_loc}) is false
+					canPass({_loc}) is false
+					exit 2 sections
+				particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+				set {_ent::*} to hitbox(player, {_loc})
+				loop {_ent::*}:
+					{_dmged::*} does not contain {_ent::%loop-index%}
+					add {_ent::%loop-index%} to {_dmged::*}
+					exit 2 sections
+				
+			loop {_dmged::*}:
+				set {_e} to {_dmged::%loop-index%}
+				set {_dmg} to 9
+				set {_falloff} to (distance between player and {_e})/10
+				if {_falloff} < 0.65:
+					set {_falloff} to 0.65
+				set {_dmg} to round({_dmg}/{_falloff})
+				tfdmg({_dmg}, {_e}, player)
+			delete {_dmged::*}
+			
+			modifyAmmo(player, 1)
+				
+			wait 1 tick
+			
+		
+		
+		
+		set metadata value "fire" of player to true
+		play sound "custom.weapon.minigun_shoot" with volume 0.7 at player for all players
+		
+	set metadata value "fire" of player to false
+	set player's walk speed to 0.14
+	remove jump boost from player
+	play sound "custom.weapon.minigun_wind_down" at player for all players
+			
+			

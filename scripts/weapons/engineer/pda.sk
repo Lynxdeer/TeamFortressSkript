@@ -1,0 +1,148 @@
+
+on rightclick with bow:
+	player's tool's name starts with "&6Sentry"
+	cancel event
+	set {_hpn::*} to uncolored player's tool's name split at "-"
+	replace all " " in {_hpn::2} with ""
+	set {_hp} to {_hpn::2} parsed as number
+	{hassentry::%player%} is not true
+	
+	set {_loc} to location in front of player
+	if block below {_loc} is air:
+		set {_loc} to location below {_loc}
+		if block below {_loc} is air:
+			send "&cYou can't place a sentry here!" to player
+			stop
+			
+	buildSentry(player, {_loc}, {_hp})
+	remove 1 of player's tool from player
+	set {hassentry::%player%} to true
+	
+on rightclick with dispenser:
+	player's tool's name starts with "&6Dispenser"
+	cancel event
+	set {_hpn::*} to uncolored player's tool's name split at "-"
+	replace all " " in {_hpn::2} with ""
+	set {_hp} to {_hpn::2} parsed as number
+	{hasdispenser::%player%} is not true
+	
+	set {_loc} to location in front of player
+	if block below {_loc} is air:
+		set {_loc} to location below {_loc}
+		if block below {_loc} is air:
+			send "&cYou can't place a dispenser here!" to player
+			stop
+			
+	buildDispenser(player, {_loc}, {_hp})
+	remove 1 of player's tool from player
+	set {hasdispenser::%player%} to true
+	
+on rightclick with ender pearl:
+	player's tool's name starts with "&6Teleporter"
+	cancel event
+	{hastp::%player%} is not true
+	#buildTeleporter(player, location in front of player, {_hp})
+	remove 1 of player's tool from player
+	set {hastp::%player%} to true
+
+
+
+on rightclick with scute:
+	#send "&cEngineer is temporarily disabled!"
+	#stop
+	cooldown of player's tool for player <= 0 seconds
+	custom model data of player's tool is 2
+	set {_gui} to chest inventory with 6 rows named "&f"
+	set {pdainv::%player%::*} to all items in player's inventory
+	
+	set slot 0 of {_gui} to crossbow with custom model data 10 named "&6Sentry"
+	set slot 1 of {_gui} to crossbow with custom model data 10 named "&6Sentry"
+	set slot 2 of {_gui} to crossbow with custom model data 10 named "&6Sentry"
+	set slot 9 of {_gui} to crossbow with custom model data 10 named "&6Sentry"
+	set slot 10 of {_gui} to crossbow with custom model data 10 named "&6Sentry"
+	set slot 11 of {_gui} to crossbow with custom model data 10 named "&6Sentry"
+	set slot 18 of {_gui} to crossbow with custom model data 10 named "&6Sentry"
+	set slot 19 of {_gui} to crossbow with custom model data 10 named "&6Sentry"
+	set slot 20 of {_gui} to crossbow with custom model data 10 named "&6Sentry"
+	
+	set slot 3 of {_gui} to crossbow with custom model data 10 named "&6Dispenser"
+	set slot 4 of {_gui} to crossbow with custom model data 10 named "&6Dispenser"
+	set slot 5 of {_gui} to crossbow with custom model data 10 named "&6Dispenser"
+	set slot 12 of {_gui} to crossbow with custom model data 10 named "&6Dispenser"
+	set slot 13 of {_gui} to crossbow with custom model data 10 named "&6Dispenser"
+	set slot 14 of {_gui} to crossbow with custom model data 10 named "&6Dispenser"
+	set slot 21 of {_gui} to crossbow with custom model data 10 named "&6Dispenser"
+	set slot 22 of {_gui} to crossbow with custom model data 10 named "&6Dispenser"
+	set slot 23 of {_gui} to crossbow with custom model data 10 named "&6Dispenser"
+	
+	set slot 27 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Entrance"
+	set slot 28 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Entrance"
+	set slot 29 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Entrance"
+	set slot 36 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Entrance"
+	set slot 37 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Entrance"
+	set slot 38 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Entrance"
+	set slot 45 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Entrance"
+	set slot 46 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Entrance"
+	set slot 47 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Entrance"
+	
+	set slot 30 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Exit"
+	set slot 31 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Exit"
+	set slot 32 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Exit"
+	set slot 39 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Exit"
+	set slot 40 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Exit"
+	set slot 41 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Exit"
+	set slot 48 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Exit"
+	set slot 49 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Exit"
+	set slot 50 of {_gui} to crossbow with custom model data 10 named "&6Teleporter Exit"
+	
+	clear player's inventory
+	open {_gui} to player
+	
+on inventory close:
+	name of player's current inventory is "&f"
+	loop {pdainv::%player%::*}:
+		type of loop-value is not leather chestplate
+		name of loop-value does not contain "Party Hat"
+		give player loop-value
+
+on inventory click:
+	name of player's current inventory is "&f"
+	event-item is set
+	event-item is not air
+	player's gamemode is not spectator
+	cancel event
+	close inventory for player
+	
+	if name of event-item is "&6Sentry":
+		
+		if {hassentry::%player%} is true:
+			send "&cYou already have a sentry placed!" to player
+			stop
+			
+		if getAmmo(player) is less than 130:
+			send "&cYou do not have enough ammo to place a sentry, you must have at least 130!"
+			stop
+		modifyAmmo(player, 130)	
+		
+		set {hassentry::%player%} to true
+		buildSentry(player, location in front of player)
+		set cooldown of player's tool for player to 3 seconds
+		
+	if name of event-item is "&6Dispenser":
+		
+		if {hasdispenser::%player%} is true:
+			send "&cYou already have a dispenser placed!" to player
+			stop
+			
+		if getAmmo(player) is less than 100:
+			send "&cYou do not have enough ammo to place a dispenser, you must have at least 100!"
+			stop
+		modifyAmmo(player, 100)	
+		
+		set {hasdispenser::%player%} to true
+		buildDispenser(player, location in front of player)
+		set cooldown of player's tool for player to 3 seconds
+	
+on skript stop:
+	delete {hassentry::*}
+	delete {hasdispenser::*}

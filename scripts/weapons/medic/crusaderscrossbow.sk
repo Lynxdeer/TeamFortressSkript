@@ -1,0 +1,72 @@
+on right click with crossbow:
+
+	line 1 of player's tool's lore starts with "&7Superior to the syringe gun."
+	player's gamemode is not spectator
+	
+	cancel event
+
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 1.6 seconds
+	
+	set player's tool to getItem("crusaderscrossbow")
+	getAmmo(player) is not less than 5
+	modifyAmmo(player, 5)
+	
+	set {_loc} to location 1.6 meters above location of player
+	play sound "custom.weapon.mediccrossbow_shoot" with volume 1 and pitch 1 at {_loc} for all players
+	loop 80 times:
+		loop 3 times:
+			if {_dontshoot} is set:
+				stop
+			
+			set {_loc} to location 0.5 meters in front of {_loc}
+			
+			particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+			
+			set {_ent::*} to hitbox(player, {_loc})
+			
+			loop {deflect::*}:
+				distance between {deflect::%loop-index%} and {_loc} is less than 2.5
+				set {_loc}'s yaw to {deflect::%loop-index%}'s yaw
+				set {_loc}'s pitch to {deflect::%loop-index%}'s pitch
+				delete {deflect::%loop-index%}
+				play sound "custom.weapon.airblast_projectile" at {_loc} for all players
+				
+			loop all entities where [{_ent::*} contains input]:
+				
+				if getTeam(loop-entity) = getTeam(player):
+					set {_findmg} to 100
+					set {_distmult} to (distance between loop-entity's head location and player's head location / 20)
+					if {_distmult} is more than 2:
+						set {_distmult} to 2
+					set {_findmg} to {_findmg} * {_distmult}
+					if {_findmg} < 75:
+						set {_findmg} to 75
+					if {_findmg} > 150:
+						set {_findmg} to 150
+					heal loop-entity by {_findmg} / 10
+					healHologram(loop-entity, round({_findmg}))
+					play sound "custom.healthpack" at loop-entity for all players
+					stop
+				
+				if getTeam(loop-entity) != getTeam(player):
+					set {_dontshoot} to true
+					set {_findmg} to 60
+					set {_distmult} to (distance between loop-entity's head location and player's head location / 10)
+					if {_distmult} is more than 1.973:
+						set {_distmult} to 1.973
+					set {_findmg} to {_findmg} * {_distmult}
+					if {_findmg} < 38:
+						set {_findmg} to 38
+				
+					tfdmg(round({_findmg}), loop-entity, player)
+					stop
+				
+			loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+				isPassableBlock(loop-block) is false
+				canPass({_loc}) is false
+				particle(cloud, 3, 0.1, 0.1, 0.1, {_loc})
+				stop
+				
+			
+		wait 1 tick

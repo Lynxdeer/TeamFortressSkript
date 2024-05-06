@@ -1,0 +1,181 @@
+import:
+	org.bukkit.entity.Damageable
+
+function applyUberSkin(p: player):
+	{_p} is set
+	if getTeam({_p}) is "red":
+		set {_p}'s displayed skin to red skin
+	if getTeam({_p}) is "blue":
+		set {_p}'s displayed skin to blue skin
+	hide {_p} from all players
+	wait 1 tick
+	reveal {_p} to all players
+
+on leftclick with crossbow:
+	
+	player's tool's name is "&6Medigun"
+	{uber::%player%} >= 100
+	player's gamemode is not spectator
+	
+	cancel event
+	
+	updateActionBar(player)
+	set {_f} to location 1.2 meters above player
+	
+	if {healtarget::%player%} is set:
+		distance between {healtarget::%player%} and player's head location is more than 6
+		delete {healtarget::%player%}
+	
+	"%{healtarget::%player%}'s potion effects%" does not contain "invisibility"
+	play sound "custom.weapon.medigun_charged" at player for all players
+	
+	applyUberSkin({healtarget::%player%}) if {healtarget::%player%} is set
+	applyUberSkin(player)
+	
+	set metadata value "ubered" of player to true
+	while {uber::%player%} > 0:
+	
+		if player is not online:
+			delete metadata value "ubered" of player
+			stop loop
+			
+		remove 1 from {uber::%player%}
+		updateActionBar(player)
+		remove resistance from player
+		apply resistance 5 without particles to player for 1 second
+		
+		remove resistance from {healtarget::%player%} if {healtarget::%player%} is set
+		apply resistance 5 without particles to {healtarget::%player%} for 1 second if {healtarget::%player%} is set
+				
+		wait 2 tick
+		
+	set {uber::%player%} to 0
+	delete metadata value "ubered" of player
+	undisguise(player)
+	undisguise({healtarget::%player%}) if {healtarget::%player%} is set
+		
+	
+on tool change:
+	
+	player's tool's name is "&6Medigun"
+	player's gamemode is not spectator
+	
+	
+	while player's tool's name is "&6Medigun":
+		loop all players where [input's prefix starts with getTeamColor(player)]:
+			{healtarget::%player%} is loop-player
+			if loop-player's displayed skin is not red skin or blue skin:
+				metadata value "ubered" of player is true
+				applyUberSkin(loop-player)
+			time since (metadata value "lastmedigunuse" of player) > 0.6 seconds
+			{healtarget::%player%} is set
+			if {healtarget::%player%}'s displayed skin is red skin or blue skin:
+				undisguise({healtarget::%player%})
+				remove resistance from {healtarget::%player%}
+			delete {healtarget::%player%}
+			play sound "custom.weapon.medigun_unheal" at player for all players
+			
+			
+			
+		wait 5 ticks
+		
+		
+	{healtarget::%player%} is set
+	if {healtarget::%player%}'s displayed skin is red skin or blue skin:
+		undisguise({healtarget::%player%})
+		remove resistance from {healtarget::%player%}
+	delete {healtarget::%player%}
+	play sound "custom.weapon.medigun_unheal" at player for all players
+
+on rightclick with crossbow:
+
+	player's tool's name is "&6Medigun"
+	player's gamemode is not spectator
+	
+	cancel event
+	
+	set {_h} to player's tool
+	set {_cd} to cooldown of player's tool for player
+	if clicked block is set:
+		send title "&0" with subtitle "&cDon't click on blocks while using medigun" to player for 0.4 seconds with fadein 0 second and fade out 0 second
+		stop
+	
+	set player's tool to crossbow named "&6Medigun" with lore "&7MEDIC GAMING" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:17,HideFlags:63}"
+	
+	set {_f} to location 1.2 meters above player
+	
+	if {_cd} <= 0 seconds:
+		clicked entity is a player
+		clicked entity's prefix starts with getTeamColor(player)
+		"%clicked entity's potion effects%" does not contain "invisibility"
+		set {healtarget::%player%} to clicked entity
+		play sound "custom.weapon.medigun_heal" at player for all players
+		set cooldown of player's tool for player to 0.3 second
+		
+	if {_cd} <= 0.3 seconds:
+		{_cd} is not 0 seconds
+		{healtarget::%player%} is set
+		
+		set {_t} to {healtarget::%player%}
+		set {_thl} to {healtarget::%player%}'s head location
+		
+		if getHealth({_t}) is less than 100:
+			set {_nspace} to ""
+		if getHealth({_t}) is less than 10:
+			set {_nspace} to ""
+		if getHealth({_t}) is more than 99:
+			set {_nspace} to ""
+			
+		send title "&0" with subtitle "%{_nspace}%&0%getHealth({_t})%" to player for 0.5 seconds with fadein 0 second and fade out 0 second
+		
+		if distance between {_thl} and player's head location is more than 6:
+			set cooldown of player's tool for player to 0 seconds
+			exit 2 sections
+		set cooldown of player's tool for player to 0.3 seconds
+		set metadata value "lastmedigunuse" of player to now
+		
+		set {_v} to vector from player's head location to {_thl}
+		set {_f}'s pitch to {_v}'s pitch
+		set {_f}'s yaw to {_v}'s yaw
+		heal {healtarget::%player%} by 1
+		if {_t}'s health >= {_t}'s max health:
+			add 0.2 to {uber::%player%}
+			set {_maxoverheal} to {_t}'s max health / 2
+			if {_maxoverheal} > {_t}.getAbsorptionAmount():
+				{_t}.setAbsorptionAmount({_t}.getAbsorptionAmount() + 1)
+			if {_maxoverheal} < {_t}.getAbsorptionAmount():
+				{_t}.setAbsorptionAmount({_maxoverheal})
+		else:
+			add 0.5 to {uber::%player%}
+		updateActionBar(player)
+		if {uber::%player%} is more than 100:
+			set {uber::%player%} to 100
+				
+			
+		loop floor(distance between {_thl} and player's head location * 2) times:
+			set {_f} to location 0.5 meters in front of {_f}
+			loop blocks in radius 0.8 around {_f}:
+				loop-block is solid
+				loop-block is not barrier
+				delete {_path::*}
+				exit 2 sections
+			add {_f} to {_path::*}
+				
+			set {_v} to vector from {_f} to {_thl}
+			
+			{_path::*} is set
+			loop {_path::*}:
+				set {_ptl} to {_path::%loop-index%}
+				particle(enchanted_hit, 1, 0.05, 0.05, 0.05, {_ptl})
+		
+	cooldown of player's tool for player <= 0 seconds
+	{healtarget::%player%} is set
+	if {healtarget::%player%}'s displayed skin is red skin or blue skin:
+		undisguise({healtarget::%player%})
+		remove resistance from {healtarget::%player%}
+	delete {healtarget::%player%}
+	play sound "custom.weapon.medigun_unheal" at player for all players
+		
+	
+	
+	

@@ -1,0 +1,198 @@
+on tool change:
+	player's gamemode is not creative or spectator
+	past tool is not air
+	past tool is set
+	new tool is not air
+	new tool is set
+	new tool's name is not "&6Flamethrower" or "&6Minigun"
+	set {_cd} to 0.5 seconds
+	cooldown of new tool for player <= {_cd}
+	set cooldown of new tool for player to {_cd}
+	
+	
+function modifyAmmo(p: player, i: integer):
+	{_p}'s gamemode is not creative or spectator
+	set metadata value "ammo" of {_p} to metadata value "ammo" of {_p} - {_i}
+	set metadata value "ammo" of {_p} to 0 if metadata value "ammo" of {_p} < 0
+	updateActionBar({_p})
+	
+function addAmmo(p: player, i: integer):
+	set metadata value "ammo" of {_p} to metadata value "ammo" of {_p} + {_i}
+	set metadata value "ammo" of {_p} to 200 if metadata value "ammo" of {_p} > 200
+	updateActionBar({_p})
+	
+function getAmmo(p: player) :: number:
+	set {_r} to metadata value "ammo" of {_p}
+	set {_r} to 0 if metadata value "ammo" of {_p}
+	return {_r}
+	
+	
+	
+	
+function modifyMetal(p: player, i: integer):
+	{_p}'s gamemode is not creative or spectator
+	set metadata value "metal" of {_p} to metadata value "metal" of {_p} - {_i}
+	set metadata value "metal" of {_p} to 0 if metadata value "metal" of {_p} < 0
+	updateActionBar({_p})
+	
+function addMetal(p: player, i: integer):
+	set metadata value "metal" of {_p} to metadata value "metal" of {_p} + {_i}
+	set metadata value "metal" of {_p} to 200 if metadata value "metal" of {_p} > 200
+	updateActionBar({_p})
+	
+function getMetal(p: player, i: integer) :: number:
+	updateActionBar({_p})
+	return metadata value "metal" of {_p}
+	
+	
+	
+	
+command /cgive [<text>]:
+	permission: op
+	permission message: &cInsufficient permissions!
+	trigger:
+		give player getItem(arg-1)
+		
+function getItem(i: text) :: item:
+	
+	
+	if {_i} is "EmptyCrossbow":
+		return crossbow named "&dhi how u doin today :)" with custom model data 10 with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,HideFlags:63}"
+	if {_i} is "Shotgun": # Multiclass
+		return crossbow named "&6Shotgun" with lore "&7I'm gonna blow that dumb look right off your stupid face." with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:20,HideFlags:63}"
+		stop
+	if {_i} is "Pistol": # Multiclass
+		return crossbow named "&6Pistol" with lore "&7Hit the bricks, chucklehead!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:30,HideFlags:63}"
+		stop
+
+
+
+	if {_i} is "Scattergun": # Scout
+		return crossbow named "&6Scattergun" with lore "&7Yeah, come get some, be my guest!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:20,HideFlags:63}"
+		stop
+	if {_i} is "Bat": # Scout
+		return unbreakable iron sword with custom model data 1 named "&6Bat" with lore "&7B O N K" with nbt "{HideFlags:63}"
+		stop
+		
+		
+		
+	if {_i} is "Rocket" or "Rocket Launcher" or "rocket_launcher": # Soldier
+		return crossbow named "&6Rocket Launcher" with lore "&7Boom!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:11,HideFlags:63}"
+		stop
+	if {_i} is "RocketJumper" or "Rocket Jumper" or "rocket_jumper": # Soldier
+		return crossbow named "&6Rocket Jumper" with lore "&7A no-damage launcher that allows you to soar into the skies." with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:22,HideFlags:63}"
+		stop
+	if {_i} is "Shovel" or "Soldier Shovel" or "soldier_shovel": # Soldier
+		return unbreakable iron sword with custom model data 2 named "&6Shovel" with lore "&7I am not trapped in here with you, you are trapped in here with me!" with nbt "{HideFlags:63}"
+		stop
+	if {_i} is "market gardener" or "marketgardener" or "market_gardener": # Soldier
+		return unbreakable iron sword with custom model data 2 named "&6Market Gardener" with lore "&7SCREAMIN' EAGLEEEEES" with nbt "{HideFlags:63}"
+		stop
+		
+		
+		
+	if {_i} is "Flamethrower": # Pyro
+		return crossbow named "&6Flamethrower" with lore "&7Mmmph Mmmph!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:3,HideFlags:63}"
+		stop
+	if {_i} is "Fireaxe" or "Fire Axe" or "fire_axe": # Pyro
+		return unbreakable iron sword with custom model data 3 named "&6Fire Axe" with lore "&7Timber!" with nbt "{HideFlags:63}"
+		stop
+		
+		
+		
+	if {_i} is "Grenade" or "Grenade Launcher" or "grenade_launcher": # Demo
+		return crossbow named "&6Grenade Launcher" with lore "&7Ka-Blooey!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:4,HideFlags:63}"
+		stop
+	if {_i} is "Sticky" or "Stickybomb Launcher" or "Stickybomb" or "Sticky Launcher" or "stickybomb_launcher" or "sticky_launcher": # Demo
+		return crossbow named "&6Stickybomb Launcher" with lore "&7You appear to have trodden on a mine!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:14,HideFlags:63}"
+		stop
+	if {_i} is "Sticky" or "sticky_jumper" or "stickyjumper" or "sticky jumper": # Demo
+		return crossbow named "&6Sticky Jumper" with lore "&7A no-damage stickybomb launcher that allows you to jump without blowing yourself up!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:24,HideFlags:63}"
+		stop
+	if {_i} is "Bottle" or "Demo Bottle" or "Demobottle" or "demo_bottle": # Demo
+		return unbreakable iron sword with custom model data 4 named "&6Bottle" with lore "&7&o*drunk noises*" with nbt "{HideFlags:63}"
+		stop
+		
+		
+	if {_i} is "Minigun": # Heavy
+		return crossbow named "&6Minigun" with lore "&7It costs $400,000 to fire this weapon... for twelve seconds." with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:5,HideFlags:63}"
+		stop
+	if {_i} is "Sandvich": # Heavy
+		return scute named "&6Sandvich" with lore "&7nom nom nom nom nom" with nbt "{CustomModelData:1,HideFlags:63}"
+		stop
+		
+		
+		
+	if {_i} is "Wrench": # Engineer
+		return unbreakable iron sword with custom model data 6 named "&6Wrench" with lore "&7Allows you to become an Uncle Dane wannabe." with nbt "{HideFlags:63}"
+		stop
+	if {_i} is "PDA" or "Construction PDA" or "construction_pda": # Engineer
+		return scute with custom model data 2 named "&6Construction PDA" with nbt "{HideFlags:63}"
+		stop
+		
+	if {_i} is "crossbow" or "crusaders_crossbow" or "crusaderscrossbow" or "crusader" or "crusaders crossbow" or "crusader's crossbow" or "medic_crossbow" or "medicrossbow" or "mediccrossbow":
+		return crossbow named "&6Crusader's Crossbow" with lore "&7Superior to the syringe gun." with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:7,HideFlags:63}"
+		stop
+	if {_i} is "Medigun" or "Medi Gun":
+		return crossbow named "&6Medigun" with lore "&7MEDIC GAMING" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:17,HideFlags:63}"
+		stop	
+	if {_i} is "Red_Ubersaw" or "Ubersaw_Red" or "ubersaw":
+		return unbreakable iron sword with custom model data 7 named "&cUbersaw" with lore "&7&o""This ubercharge was sponsored by your team.""" with nbt "{HideFlags:63}"
+		stop
+	if {_i} is "Blue_Ubersaw" or "Ubersaw_Blue":
+		return unbreakable iron sword with custom model data 10 named "&9Ubersaw" with lore "&7&o""This ubercharge was sponsored by your team.""" with nbt "{HideFlags:63}"
+		stop
+		
+		
+	if {_i} is "sniperscoped":
+		return crossbow named "&6Sniper Rifle" with lore "&7&oYOU'RE GONNA NEED ANOTHER USE FOR THAT HEAD MATE" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:8,HideFlags:63}"
+		stop	
+	if {_i} is "Sniper" or "Sniper Rifle" or "SniperRifle" or "sniper_rifle":
+		return crossbow named "&6Sniper Rifle" with lore "&7&oYOU'RE GONNA NEED ANOTHER USE FOR THAT HEAD MATE" with nbt "{Unbreakable:1,CustomModelData:8,HideFlags:63}"
+		stop
+	if {_i} is "Jarate":
+		set {_ret} to potion with custom model data 1 named "&eJarate" with lore "&7The jar based karate."
+		dye {_ret} yellow
+		return {_ret}
+		stop
+	if {_i} is "Kukri":
+		return unbreakable iron sword with custom model data 8 named "&6Kukri" with lore "&7Good thing there's no random crits." with nbt "{HideFlags:63}"
+		stop
+		
+		
+	if {_i} is "Revolver":
+		return crossbow named "&6Revolver" with lore "&7You got blood on my suit." with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:9,HideFlags:63}"
+		stop
+	if {_i} is "Ambassador":
+		return crossbow named "&6Ambassador" with lore "&7A sweaty spy main's forte." with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:9,HideFlags:63}"
+		stop
+	if {_i} is "Sapper":
+		return scute with custom model data 7 named "&6Sapper" with lore "&7I murdered your toys as well."
+		stop
+	if {_i} is "Knife" or "Spy Knife" or "Spyknife":
+		return unbreakable iron sword with custom model data 9 named "&6Knife" with lore "&7You got blood on my suit." with nbt "{HideFlags:63}"
+		stop
+	if {_i} is "Kunai" or "ConniversKunai" or "conniver's kunai":
+		return unbreakable iron sword with custom model data 12 named "&6Conniver's Kunai" with lore "&7weeb jokes" with nbt "{HideFlags:63}"
+		stop
+	if {_i} is "Disguise" or "DisguiseKit" or "Disguise Kit" or "disguise_kit":
+		return crossbow named "&6Disguise Kit" with lore "&7I never really was on your side." with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:18,HideFlags:63}"
+		stop
+	if {_i} is "InvisWatch" or "Invis" or "Invis Watch" or "Invisibility Watch" or "watch" or "invis_watch":
+		return ghast tear named "&6Invisibility Watch" with lore "&7This &owill &7be the last time you see me." with nbt "{Unbreakable:1,CustomModelData:1,HideFlags:63}"
+		stop
+	if {_i} starts with "model_":
+		set {_c} to {_i}
+		replace all "model_" in {_c} with ""
+		set {_c} to {_c} parsed as integer
+		return crossbow named "&eCustom Model Data &7| &6%{_c}%" with custom model data {_c}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		

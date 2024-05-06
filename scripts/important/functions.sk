@@ -1,0 +1,76 @@
+function getTeam(p: player) :: text:
+	if {red::*} contains {_p}:
+		return "red"
+		stop
+	if {blue::*} contains {_p}:
+		return "blue"
+		stop
+	return "null"
+	
+function isInt(i: number) :: boolean:
+	if "%{_i}%" contains ".":
+		return false
+		stop
+	return true
+	
+function noneToEmpty(s: text) :: text:
+	if {_s} is not set:
+		return ""
+		stop
+	return {_s}
+	
+function timeformat(n: number) :: text:
+	set {_n} to floor({_n})
+	set {_mins} to 0
+	set {_secs} to {_n}
+	if {_n} is more than 59:
+		set {_ln} to {_n} # Keeping the original value of {_n} while also being able to loop it
+						  # To figure out how many minutes there are, cause using {_n} could be
+						  # Useful in the future, althouguh it's pointless atm
+		set {_mins} to 0
+		while {_ln} is more than 0:
+			remove 60 from {_ln}
+			if {_ln} is less than 0:
+				add 60 to {_ln}
+				stop loop
+			add 1 to {_mins}
+		set {_secs} to abs({_ln})
+		
+	if {_secs} is less than 10: # Time formatting to make it 01 instead of 1
+		set {_secs} to "0%{_secs}%"
+		
+	return "%{_mins}%:%{_secs}%"
+	
+	
+	
+function getTeamColor(p: player) :: text:
+	if {red::*} contains {_p}:
+		return "&c"
+		stop
+	if {blue::*} contains {_p}:
+		return "&9"
+		stop
+	return "&7"
+
+function entityIsProper(e: entity) :: boolean:
+	if {_e} is a painting or regular minecart or item frame or end crystal or fireball or small fireball or dragon fireball or arrow or armor stand or experience bottle or egg or snowball:
+		return false
+		stop
+	if "%{_e}%" contains "dropped" or "boat":
+		return false
+		stop
+	return true
+	
+function debug(t: object):
+	loop all players where [input is "Lynxdeer"]:
+		set {_p} to loop-player
+	send "[Debug] %{_t}%" to {_p}
+	log "[Debug] %{_t}%"
+	
+function getPlayer(t: text) :: player:
+	set {_p} to "%{_t}%" parsed as player
+
+function getPlayerAsEntity(t: text) :: entity:
+	set {_p} to "%{_t}%" parsed as offline player
+	set {_p} to {_p} parsed as entity
+	return {_p}

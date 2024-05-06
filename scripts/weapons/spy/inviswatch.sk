@@ -1,0 +1,46 @@
+on rightclick:
+	player's tool's name is "&6Invisibility Watch"
+	cooldown of player's tool for player <= 0 seconds
+	set {_t} to player's tool
+	play sound "custom.spy_cloak" with volume 0.4 and pitch 1 at player's head location for all players
+	set cooldown of player's tool for player to 10 seconds
+	remove invisibility from player
+	send "&eYou are now cloaked!" to player
+	while cooldown of player's tool for player > 0 seconds:
+		apply invisibility without particles to player for 2 seconds
+		hide player from all players where [getTeam(input) is not getTeam(player)]
+		if player's gamemode is spectator:
+			stop loop
+		
+		set {_sleft::*} to "%cooldown of {_t} for player%" split at " "
+		set {_sleft} to (10 - ({_sleft::1} parsed as number))
+		
+		set {_unbarsn} to ceiling((10 - {_sleft}) * 2)
+		set {_barsn} to ceiling({_sleft} * 2)
+		set {_bars} to ""
+		set {_unbars} to ""
+		
+		loop {_barsn} times:
+			set {_bars} to "%{_bars}%|"
+		loop {_unbarsn} times:
+			set {_unbars} to "%{_unbars}%|"
+		send title "&0" with subtitle "&7[ &f%{_unbars}%&8%{_bars}% &7]" to player for 0.6 seconds with fadein 0 second and fade out 0 second
+			
+		if player's tool is not {_t}:
+			set cooldown of {_t} for player to "%{_sleft} / 2% seconds" parsed as timespan
+			stop loop
+			
+		wait 4 ticks
+	if player's gamemode is spectator:
+		reveal player to all players
+		stop
+	send "&eYou have uncloaked!" to player
+	reveal player to all players
+	play sound "custom.spy_uncloak" with volume 0.4 and pitch 1 at player's head location for all players
+	remove invisibility from player
+	cooldown of {_t} for player <= 0 seconds
+	set cooldown of {_t} for player to 10 seconds
+		
+		
+		
+		

@@ -1,0 +1,132 @@
+on right click with crossbow:
+
+	line 1 of player's tool's lore starts with "&7Boom!"
+	player's gamemode is not spectator
+	
+	cancel event
+
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 0.8 seconds
+	
+	set player's tool to crossbow named "&6Rocket Launcher" with lore "&7Boom!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:11,HideFlags:63}"
+	getAmmo(player) is not less than 10
+	modifyAmmo(player, 10)
+	
+	set {_loc} to location 1.6 meters above location of player
+	play sound "custom.weapon.rocket_shoot" with volume 1 and pitch 1 at {_loc} for all players
+	set {_speed} to 2
+	loop 80 times:
+		loop {_speed} times:
+			if {_dontshoot} is set:
+				exit 3 sections
+		
+			set {_loc} to location 0.5 meters in front of {_loc}
+		
+			particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+			particle(enchanted_hit, 1, 0.1, 0.1, 0.1, {_loc})
+		
+			set {_ent::*} to hitbox(player, {_loc})
+			
+			loop {deflect::*}:
+				distance between {deflect::%loop-index%} and {_loc} is less than 2.5
+				set {_loc}'s yaw to {deflect::%loop-index%}'s yaw
+				set {_loc}'s pitch to {deflect::%loop-index%}'s pitch
+				add 1 to {_speed}
+				delete {deflect::%loop-index%}
+				play sound "custom.weapon.airblast_projectile" at {_loc} for all players
+			
+			loop all entities where [{_ent::*} contains input]:
+				
+				play sound "minecraft:custom.weapon.explode%random integer between 1 and 3%" with volume 1 and pitch (random integer between 0.7 and 1.3) at loop-entity for all players
+				particle(explosion_emitter, 1, 0.1, 0.1, 0.1, {_loc})
+				set {_dontshoot} to true
+				set {_findmg} to 90
+				set {_distmult} to (distance between loop-entity's head location and player's head location / 2)
+				set {_rngmult} to random number between 0.9 and 1.1	
+				set {_findmg} to {_findmg} - {_distmult}
+				set {_findmg} to {_findmg} * {_rngmult}
+				set {_d} to (0.4 / distance between loop-entity and {_loc})
+				push loop-entity {_v} with force abs({_d})
+				tfdmg(round({_findmg}), loop-entity, player)
+				
+				set {_d} to (0.4 / distance between {_loc} and loop-entity)
+				set {_v} to vector from {_loc} to location above {_loc}
+				loop entities in radius 3 around loop-entity:
+				
+					loop-entity-1 is not loop-entity-2
+					canSightline(loop-entity-1, loop-entity-2) is true
+					set {_dontshoot} to true
+					set {_findmg} to 50
+					set {_distmult} to (distance between loop-entity-2's head location and loop-entity-1's head location / 2)
+					set {_rngmult} to random number between 0.9 and 1.1	
+					set {_findmg} to {_findmg} - {_distmult}
+					set {_findmg} to {_findmg} * {_rngmult}
+					
+					set {_d} to (0.4 / distance between loop-entity-1 and loop-entity-2)
+					set {_v} to vector from loop-entity-1 to block above loop-entity-2
+					push loop-entity-2 {_v} with force abs({_d})
+					tfdmg(round({_findmg}), loop-entity-2, player)
+			
+			
+			
+			
+			
+			
+			
+			loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+				isPassableBlock(loop-block) is false
+				canPass({_loc}) is false
+				play sound "minecraft:custom.weapon.explode%random integer between 1 and 3%" with volume 0.5 and pitch (random integer between 0.7 and 1.3) at {_loc} for all players
+				particle(explosion, 20, 1, 1, 1, {_loc})
+		
+			
+				loop entities in radius 4 around {_loc}:
+					
+					canSightline({_loc}, loop-entity) is true
+					set {_dontshoot} to true
+					set {_findmg} to 50
+					set {_distmult} to (distance between loop-entity's head location and player's head location / 2)
+					set {_rngmult} to random number between 0.9 and 1.1	
+					set {_findmg} to {_findmg} - {_distmult}
+					set {_findmg} to {_findmg} * {_rngmult}
+				
+					if loop-entity is the player:
+						set {_d} to (0.8 / distance between {_loc} and loop-entity)
+						set {_v} to vector from {_loc} to block above loop-entity
+						if {_d} is more than 2:
+							set {_d} to 2
+						if {_d} is less than 1:
+							set {_d} to 1
+					else:
+						set {_d} to (0.7 / distance between {_loc} and loop-entity)
+						set {_v} to vector from {_loc} to block above loop-entity
+					
+					push loop-entity {_v} with force abs({_d})
+					if loop-entity is sneaking:
+						set loop-entity's velocity to vector x component of loop-entity's velocity * 2, vector y component of loop-entity's velocity * 1.2, vector z component of loop-entity's velocity * 2 
+					else:
+						set loop-entity's velocity to vector x component of loop-entity's velocity * 1.2, vector y component of loop-entity's velocity * 1.1, vector z component of loop-entity's velocity * 1.2
+					tfdmg(round({_findmg}), loop-entity, player)
+				
+				exit 3 sections
+				
+			
+		wait 1 tick
+		
+	wait 5 ticks
+	set metadata value "rocketjumping" of player to true
+	while isPassableBlock(block below player) is true:
+		if isPassableBlock(block at player) is not true:
+			stop loop
+		if player's gamemode is spectator:
+			stop loop
+		if player is not online:
+			stop loop
+		if metadata value "rocketjumping" of player is not true:
+			stop loop
+		set metadata value "rocketjumping" of player to true
+		wait 5 ticks
+		
+	delete metadata value "rocketjumping" of player
+		
+		

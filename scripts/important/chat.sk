@@ -1,0 +1,15 @@
+on chat:
+	set {_pref} to ""
+	set {_pref} to "[Dev] " if player is "Lynxdeer"
+	set {_pref} to "[Mod] " if player is "goldmalexen"
+	set chat format to "%getTeamColor(player)%%{_pref}%%player% &7[&f%getClassSB(player)%&7]&f: %colored message%"
+	
+command /discord [<text>]:
+	trigger:
+		send formatted "<tooltip:&3Click to join!><link:https://discord.gg/AKJ4s2yVke>&9Click to join the teamfortress discord!<reset>"
+		
+	
+command /t [<text>]:
+	aliases: /teamchat, /tc
+	trigger:
+		send "%getTeamColor(player)%(Team) %player%&f: %arg-1%" to all players where [getTeam(input) is getTeam(player)] if arg-1 is set

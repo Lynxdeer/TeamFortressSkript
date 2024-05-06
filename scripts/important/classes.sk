@@ -1,0 +1,305 @@
+on drop:
+	player's gamemode is not creative
+	cancel event
+	
+on rightclick:
+	type of clicked block is barrel or chest or trapped chest or fence gate or stonecutter or trapdoor or door
+	player's gamemode is not creative
+	cancel event
+
+on first join:
+	wait 4 ticks
+	add 1 to {joincount}
+	broadcast "&6%player% &6joined for the first time! Say hi! &7(%{joincount}%)"
+
+on join:
+	send "%nl%&6[Resource Pack] &eDo you have the most recent version of the resource pack? Last Update: %{lastpackupdate}%"
+	send "&7Do /updatepack to get the latest version of the pack."
+	send formatted "<tooltip:&7- Changed the dispenser model%nl%&7- Added some model data for a few things%nl%&7- Added loadouts gui>&8[Hover For Changelog]<reset>%nl%"
+	if {red::*} does not contain player:
+		{blue::*} does not contain player
+		if (size of {red::*}) <= (size of {blue::*}):
+			send "&cYou were automatically assigned to team red!"
+			add player to {red::*}
+		if (size of {red::*}) > (size of {blue::*}):
+			{red::*} does not contain player
+			send "&9You were automatically assigned to team blue!"
+			add player to {blue::*}
+		updateTeamRanks()
+		kill the player
+	wait 5 ticks
+	if {c::%player%} is not set:
+		send title "&6Do /class" with subtitle "&eto pick a class"
+		if player's world is "Harvest":
+			teleport player to location at 30, 116, 66 in world "Harvest"
+	else:
+		respawnPlayer(player)
+	
+	set metadata value "ammo" of player to 200 if metadata value "ammo" of player is not set
+	set metadata value "metal" of player to 200 if metadata value "metal" of player is not set
+
+	
+on skript stop:
+	delete {red::*}
+	delete {blue::*}
+	delete {guiinv::*}
+	delete {pdainv::*}
+	
+on quit:
+	if {red::*} contains player:
+		remove player from {red::*}
+	if {blue::*} contains player:
+		remove player from {blue::*}
+	
+on flight toggle:
+	player's gamemode is not creative or spectator
+	cancel event
+	if {c::%player%} is not 1:
+		make player stop flying
+		set player's flight state to false
+		stop
+	make player stop flying
+	set player's flight state to false
+	set player's velocity to vector 0, 0, 0
+	push player vector from yaw player's yaw and pitch 0 with force 0.4
+	push player upwards with force 0.4
+	particle(cloud, 15, 1, 0, 1, player)
+	while block below player is not solid:
+		if block at player is not air:
+			block at player is not iron bars
+			stop loop
+		if player is not online:
+			stop loop
+		if player's gamemode is spectator:
+			stop loop
+		wait 5 ticks
+	set player's flight state to true
+	
+function getClassSB(p: player) :: text:
+	set {_c} to {c::%{_p}%}
+	if {_c} is 1:
+		return ""
+	if {_c} is 2:
+		return ""
+	if {_c} is 3:
+		return ""
+	if {_c} is 4:
+		return ""
+	if {_c} is 5:
+		return ""
+	if {_c} is 6:
+		return ""
+	if {_c} is 7:
+		return ""
+	if {_c} is 8:
+		return ""
+	if {_c} is 9:
+		return ""
+	if {_c} is not set:
+		return "do /class"
+
+function getClassNotePitch(t: text) :: number:
+	if {_t} is "&6Scout":
+		set {_ret} to 0.9
+	if {_t} is "&6Soldier":
+		set {_ret} to 0.95
+	if {_t} is "&6Pyro":
+		set {_ret} to 1
+	if {_t} is "&6Demoman":
+		set {_ret} to 1.05
+	if {_t} is "&6Heavy":
+		set {_ret} to 1.1
+	if {_t} is "&6Engineer":
+		set {_ret} to 1.15
+	if {_t} is "&6Medic":
+		set {_ret} to 1.25
+	if {_t} is "&6Sniper":
+		set {_ret} to 1.3
+	if {_t} is "&6Spy":
+		set {_ret} to 1.4
+	return {_ret}
+
+on inventory close:
+	name of event-inventory is "&f"
+	clear player's inventory
+	loop {guiinv::%player%::*}:
+		type of loop-value is not leather chestplate
+		give player loop-value
+		
+		
+on inventory click:
+	name of player's current inventory is "&f"
+	event-item is not air
+	set {_i} to name of event-item
+# Not setting a variable will make the inventory classes disappear because of "clear player's inventory"
+	close inventory for player
+	clear player's inventory
+	if "%region at player%" does not contain "%getTeam(player)%spawn":
+		kill the player
+	else:
+		play sound "block.note_block.pling" with pitch 2 to player
+	stop sound "custom.menu_loop" for player
+	#play sound "custom.menu_note" with pitch (getClassNotePitch({_i})) for player
+	undisguise(player)
+	delete {hassentry::%player%}
+	delete {hasdispenser::%player%}
+	delete {uber::%player%}
+	kill (metadata value "sentry" of player parsed as entity) if metadata value "sentry" of player is set
+	kill (metadata value "dispenser" of player parsed as entity) if metadata value "dispenser" of player is set
+	set player's flight state to true
+	if {_i} is "&6Scout":
+		send "&eYou have changed your class to scout!"
+		set player's walk speed to 0.3
+		set player's max health to 12.5
+		set player's flight state to true
+		set {c::%player%} to 1
+		give player getItem("scattergun")
+		give player getItem("pistol")
+		give player getItem("bat")
+	if {_i} is "&6Soldier":
+		send "&eYou have changed your class to soldier!"
+		set player's walk speed to 0.16
+		set player's max health to 20
+		set {c::%player%} to 2
+		give player getItem("rocket")
+		give player getItem("shotgun")
+		give player getItem("shovel")
+	if {_i} is "&6Pyro":
+		send "&eYou have changed your class to pyro!"
+		set player's walk speed to 0.2
+		set player's max health to 17.5
+		set {c::%player%} to 3
+		give player getItem("flamethrower")
+		give player getItem("shotgun")
+		give player getItem("fireaxe")
+		
+		
+		
+	if {_i} is "&6Demoman":
+		send "&eYou have changed your class to demoman!"
+		set player's walk speed to 0.18
+		set player's max health to 17.5
+		set {c::%player%} to 4
+		give player getItem("grenade")
+		give player getItem("sticky")
+		give player getItem("bottle")
+	if {_i} is "&6Heavy":
+		send "&eYou have changed your class to heavy!"
+		set player's walk speed to 0.14
+		set player's max health to 30
+		set {c::%player%} to 5
+		give player getItem("minigun")
+		give player getItem("sandvich")
+	if {_i} is "&6Engineer":
+		send "&eYou have changed your class to engineer!"
+		set player's walk speed to 0.2
+		set player's max health to 12.5
+		set {c::%player%} to 6
+		give player getItem("shotgun")
+		give player getItem("pistol")
+		give player getItem("wrench")
+		give player getItem("pda")
+		
+		
+		
+	if {_i} is "&6Medic":
+		send "&eYou have changed your class to medic!"
+		set player's walk speed to 0.2
+		set player's max health to 15
+		set {c::%player%} to 7
+		give player getItem("crusaderscrossbow")
+		give player getItem("medigun")
+		give player getItem("ubersaw_%getTeam(player)%")
+		set {uber::%player%} to 0
+	if {_i} is "&6Sniper":
+		send "&eYou have changed your class to sniper!"
+		set player's walk speed to 0.2
+		set player's max health to 12.5
+		set {c::%player%} to 8
+		give player getItem("sniper")
+		give player getItem("jarate")
+		give player getItem("kukri")
+	if {_i} is "&6Spy":
+		send "&eYou have changed your class to spy!"
+		set player's walk speed to 0.2
+		set player's max health to 12.5
+		set {c::%player%} to 9
+		give player getItem("revolver")
+		give player getItem("sapper")
+		give player getItem("knife")
+		give player getItem("disguise")
+		give player getItem("invis")
+	heal player
+	set {ammo::%player%} to 200
+	updateTeamRanks()
+	updateStats(player)
+		
+		
+function updateStats(p: player):
+	if {c::%{_p}%} is 9:
+		set {_health} to 12.5
+		set {_i::*} to all items in {_p}'s inventory
+		loop {_i::*}:
+			name of ({_i::%loop-index%}) is "&6Conniver's Kunai"
+			set {_health} to 7
+	set {_p}'s max health to {_health}
+	heal {_p}
+	
+	
+command /classes [<text>]:
+	aliases: /class
+	cooldown: 3 seconds
+	cooldown message: &cPlease wait %remaining time% &cbefore changing classes again!
+	trigger:
+		if player's gamemode is spectator:
+			send "&cPlease wait to respawn before changing classes again!"
+			cancel the cooldown
+			stop
+		set {_gui} to chest inventory with 6 rows named "&f"
+		set {guiinv::%player%::*} to all items in player's inventory
+		clear player's inventory
+		set slot 0 of {_gui} to scute with custom model data 8 named "&6Scout"
+		loop 53 times:
+			if loop-number is 1 or 2 or 9 or 10 or 11 or 18 or 19 or 20:
+				set {_name} to "&6Scout"
+			if loop-number is 3 or 4 or 5 or 12 or 13 or 14 or 22 or 23 or 24:
+				set {_name} to "&6Soldier"	
+			if loop-number is 6 or 7 or 8 or 15 or 16 or 17 or 25 or 26 or 27:
+				set {_name} to "&6Pyro"
+				
+			if loop-number is 27 or 28 or 29 or 36 or 37 or 38 or 45 or 46 or 47:
+				set {_name} to "&6Demoman"
+			if loop-number is 30 or 31 or 32 or 39 or 40 or 41 or 48 or 49 or 50:
+				set {_name} to "&6Heavy"
+			if loop-number is 33 or 34 or 35 or 42 or 43 or 44 or 51 or 52 or 53:
+				set {_name} to "&6Engineer"
+				
+			set slot (loop-number) of {_gui} to scute with custom model data 8 named {_name}
+	
+		loop 27 times:
+		
+			set {_i} to loop-number + 8
+		
+			if {_i} is 9 or 10 or 11 or 18 or 19 or 20 or 27 or 28 or 29:
+				set {_name} to "&6Medic"
+			if {_i} is 12 or 13 or 14 or 21 or 22 or 23 or 30 or 31 or 32:
+				set {_name} to "&6Sniper"
+			if {_i} is 15 or 16 or 17 or 24 or 25 or 26 or 33 or 34 or 35:
+				set {_name} to "&6Spy"
+				
+			set slot {_i} of player's inventory to scute with custom model data 8 named {_name}
+		open {_gui} to player
+		
+		while name of player's current inventory is "&f":
+			play sound "custom.menu_loop" to player
+			wait 82 ticks # 4.1s
+		
+		
+	
+	
+	
+	
+	
+	
+	
+	

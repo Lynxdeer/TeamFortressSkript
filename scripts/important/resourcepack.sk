@@ -1,0 +1,68 @@
+on load:
+	set {lastpackupdate} to "7/17"
+
+on command "sendmepack":
+	cancel event
+	send "&eAttempted to send you the resource pack. If this didn't work, try downloading the pack and putting it in your resource packs folder."
+	sendPack(player)
+	
+function sendPack(p: player):
+	send the resource pack from "https://5fdb9627de0a411207ad476d.manager.minehut.com/v1/resource_packs/f5610e53-65fd-4111-901f-73e22cc0c520" with hash "92292f1da63a72c68661882c9dc8c77c3765cb05" to {_p}
+	
+command /updatepack [<text>]:
+	aliases: /resourcepack, /texturepack
+	trigger:
+		if arg-1 is not "-sp":
+			send "%nl%<cmd:/sendmepack>&eClick here to be sent the pack by the server!<reset>%nl%"
+		send "<link:https://5fdb9627de0a411207ad476d.manager.minehut.com/v1/resource_packs/f5610e53-65fd-4111-901f-73e22cc0c520>&eClick here to download the pack!<reset>%nl%"
+	
+function getResourcePackGUI() :: inventory:
+	set {_gui} to chest inventory with 3 rows named "Resource Pack"
+	loop 27 times:
+		set slot (loop-number - 1) of {_gui} to black stained glass pane named "&7Click one of the buttons!"
+	set slot 11 of {_gui} to grass block named "&aHave the server send you the pack" with lore "&7This will have the pack sent to you until you disconnect, %nl%&7then it will disable itself."
+	set slot 13 of {_gui} to sea lantern named "&bDirect Download" with lore "&7This will download the pack into your &9Downloads Folder, %nl%&7which you can then place in your resource packs folder."
+	set slot 15 of {_gui} to barrier named "&cI have it already &8(Last Pack Update: %{lastpackupdate}%&8)" with lore "&7Hopefully you do. This option is also for people %nl%&7with old 2004 macs that run the game at a smooth 5 fps.%nl%&c&lNOTE: THE PACK IS ESSENTIAL TO PLAY THE SERVER"
+	return {_gui}
+	
+on join:
+	wait 10 ticks
+	player is not "Lynxdeer"
+	set {_gui} to getResourcePackGUI()
+	open {_gui} to player
+	
+on inventory click:
+	
+	name of event-inventory is "Resource Pack"
+	cancel event
+	
+	set metadata value "clickedoff" of player to true
+	if name of event-item is "&aHave the server send you the pack":
+		send "&aSending you the pack. If this doesn't work, try downloading the pack via /resourcepack."
+		sendPack(player)
+		close inventory for player # need to have it in conditions or it'll close upon clicking the glass or inventory
+		debug("&e%player% was sent the pack by the server!")
+		
+	if name of event-item is "&bDirect Download":
+		execute player command "updatepack -sp"
+		close inventory for player
+		debug("&e%player% directly downloaded the resource pack!")
+		
+	if type of event-item is barrier:
+		send "&eIf you clicked this option and want the resource pack later, do /resourcepack!"
+		debug("&e%player% denied the resource pack!")
+		close inventory for player
+	wait 1 tick
+	delete metadata value "clickedoff" of player
+		
+		
+on inventory close:
+	name of event-inventory is "Resource Pack"
+	metadata value "clickedoff" of player is not true
+	wait 1 tick
+	play sound "block.note_block.bass" to player
+	send "&cPlease choose one of the options!"
+	open getResourcePackGUI() to player
+		
+		
+		

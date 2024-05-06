@@ -1,0 +1,123 @@
+on right click with crossbow:
+
+	line 1 of player's tool's lore starts with "&7You appear to have trodden on a mine!"
+	player's gamemode is not spectator
+	
+	cancel event
+
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 0.6 seconds
+	
+	if size of {sticky::%player%::*} >= 8:
+		send title "&0" with subtitle "&cMax Stickies Reached (8)" to player for 0 seconds with fadein 0 second and fade out 0.5 second
+		stop
+	
+	set player's tool to crossbow named "&6Stickybomb Launcher" with lore "&7You appear to have trodden on a mine!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:14,HideFlags:63}"
+	getAmmo(player) is not less than 10
+	modifyAmmo(player, 10)
+	
+	set {_loc} to location 1.6 meters above location of player
+	play sound "custom.weapon.demo_shoot" with volume 0.5 at {_loc} for all players
+	set {_speed} to 2
+	set {_grav} to 0.6
+	set {_index} to size of {sticky::%player%::*} + 1
+	while player is online:
+
+		loop {_speed} times:
+			set {_loc} to location 1/{_speed} meters in front of {_loc}
+			set {_loc} to location {_grav}/{_speed} meters above {_loc}
+			remove 0.1/{_speed} from {_grav}
+		
+			particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+			particle(enchanted_hit, 1, 0.1, 0.1, 0.1, {_loc})
+		
+			set {_ent::*} to hitbox(player, {_loc})
+		
+			loop {deflect::*}:
+				distance between {deflect::%loop-index%} and {_loc} is less than 2.5
+				set {_loc}'s yaw to {deflect::%loop-index%}'s yaw
+				set {_loc}'s pitch to {deflect::%loop-index%}'s pitch
+				add 1.5 to {_speed}
+				add 0.5 to {_grav}
+				delete {deflect::%loop-index%}
+				play sound "custom.weapon.airblast_projectile" with volume 0.5 at {_loc} for all players
+			
+			loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+				isPassableBlock(loop-block) is false
+				exit 3 sections
+				
+		wait 1 tick
+	
+	if isPassableBlock(block at {_loc}) is false:
+		isPassableBlock(block above {_loc}) is true
+		if block at {_loc} is slab:
+			"%block at {_loc}'s block data%" contains "type=bottom"
+			set {_loc} to location 0.2 meter above block at {_loc}
+			exit 2 sections
+		set {_loc} to location 0.5 meter above block at {_loc}
+	add {_loc} to {sticky::%player%::*}
+	
+	while {sticky::%player%::%{_index}%} is set:
+		if player's gamemode is spectator:
+			delete {sticky::%player%::*}
+			stop loop
+		if player is not online:
+			delete {sticky::%player%::*}
+			stop loop
+		particleColor(dust, 4, 0.1, 0.1, 0.1, {_loc}, ( getTeam(player) parsed as color ) )
+		particle(crit, 1, 0, 0, 0, {_loc})
+		particle(crit, 10, 0.1, 0.1, 0.1, {_loc})
+		wait 4 ticks
+	
+	
+on leftclick with crossbow:
+	
+	line 1 of player's tool's lore starts with "&7You appear to have trodden on a mine!" or "&7Ka-Blooey!"
+	player's gamemode is not spectator
+	cancel event
+	size of {sticky::%player%::*} is more than 0
+
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 0.8 seconds
+	
+	
+	play sound "custom.weapon.stickybomb_det" with volume 0.3 at player for all players
+	
+	wait 5 ticks
+	
+	loop {sticky::%player%::*}:
+		set {_loc} to {sticky::%player%::%loop-index%}
+		particle(explosion_emitter, 1, 0.1, 0.1, 0.1, {_loc})
+		loop entities in radius 4 around {_loc}:
+		
+			canSightline({_loc}, loop-entity) is true
+			if {friendlyfire} is not true:
+				loop-entity is not player
+				getTeam(player) = getTeam(loop-entity)
+				continue
+			set {_dmg} to (144 / distance between loop-entity and {_loc})
+			if {_dmg} < 47:
+				set {_dmg} to 47
+			if {_dmg} > 160:
+				set {_dmg} to 160
+				
+			push loop-entity {_v} with force abs({_d})
+			
+			tfdmg({_dmg}, loop-entity, player)
+			play sound "custom.weapon.explode%random integer between 1 and 3%" with volume 0.5 at {_loc} for all players
+			if loop-entity is the player:
+				set {_d} to (1 / ((distance between loop-entity and {_loc} + 1) * 0.16))
+				set {_v} to vector from {_loc} to location above loop-entity
+				if {_d} is less than 1:
+					set {_d} to 1
+			else:
+				set {_d} to (0.5 / ((distance between loop-entity and {_loc} + 1) * 0.16))
+				set {_v} to vector from {_loc} to location above loop-entity
+				if {_d} is less than 1:
+					set {_d} to 1
+				
+			push loop-entity {_v} with force abs({_d})
+			
+	delete {sticky::%player%::*}
+	
+	

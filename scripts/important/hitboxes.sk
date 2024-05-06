@@ -1,0 +1,159 @@
+function hitbox(p: player, loc: location) :: entities:
+
+		#set {_head} to loop-entity's head location
+		#set {_body} to location 1 meter above loop-entity
+		#set {_feet} to loop-entity's location
+
+	loop all entities where [distance between input's head location and {_loc} is less than 1.1]:
+		loop-entity is not {_p}
+		loop-entity's gamemode is not spectator
+		{_ret::*} does not contain loop-entity
+		add loop-entity to {_ret::*}
+		
+	loop all entities where [distance between location at block 1 meter above input and {_loc} is less than 1.1]:
+		loop-entity is not {_p}
+		loop-entity's gamemode is not spectator
+		{_ret::*} does not contain loop-entity
+		add loop-entity to {_ret::*}
+		
+	loop all entities where [distance between input's location and {_loc} is less than 1.1]:
+		loop-entity is not {_p}
+		loop-entity's gamemode is not spectator
+		{_ret::*} does not contain loop-entity
+		add loop-entity to {_ret::*}
+		
+	return {_ret::*}
+
+function hitboxWithPlayer(loc: location) :: entities:
+
+		#set {_head} to loop-entity's head location
+		#set {_body} to location 1 meter above loop-entity
+		#set {_feet} to loop-entity's location
+
+	loop all entities where [distance between input's head location and {_loc} is less than 1.1]:
+		{_ret::*} does not contain loop-entity
+		add loop-entity to {_ret::*}
+		
+	loop all entities where [distance between location at block 1 meter above input and {_loc} is less than 1.1]:
+		{_ret::*} does not contain loop-entity
+		add loop-entity to {_ret::*}
+		
+	loop all entities where [distance between input's location and {_loc} is less than 1.1]:
+		{_ret::*} does not contain loop-entity
+		add loop-entity to {_ret::*}
+		
+	return {_ret::*}
+	
+function isPassableBlock(b: block) :: boolean:
+	if {_b} is air or short grass or grass or tall grass or dead bush or barrier or flower or button or pressure plate or door or trapdoor or carpet or rail:
+		return true
+		stop
+	
+	return false
+	
+function canPass(loc: location) :: boolean:
+	set {_b} to block at {_loc}
+	
+	if {_b} is slab:
+		if "%block data of {_b}%" contains "type=double":
+			return false
+			stop
+		if "%block data of {_b}%" contains "type=bottom":
+			#debug("%altitude of {_loc}% | %altitude of {_b}%")
+			if altitude of {_loc} > altitude of {_b}:
+				return true
+				stop
+			return false
+			stop
+		if "%block data of {_b}%" contains "type=top":
+			if altitude of {_loc} < altitude of {_b}:
+				return true
+				stop
+			return false
+			stop
+			
+	if isPassableBlock({_b}):
+		return true
+		stop
+	return false
+	
+	
+function blockRadius(b: block) :: number:
+	if "%{_b}%" contains "wall" || {_b} is lantern or flower pot:
+		return 0.3
+		stop
+	if {_b} is fence or chain:
+		return 0.2
+		stop
+	if {_b} is air or trapdoor or sign:
+		return 0
+		stop
+	if {_b} is fence gate:
+		if "%{_b}%" starts with "open":
+			return 0
+		return 0.6
+		stop
+	return 0.8
+	
+function canSightline(loc: location, p: entity) :: boolean:
+	
+	set {_ret} to true
+	# Feet
+	set {_f} to {_loc}
+	set {_v} to vector between {_f} and {_p}
+	set {_f}'s yaw to {_v}'s yaw
+	set {_f}'s pitch to {_v}'s pitch
+	
+	set {_f} to location 0.5 meters in front of {_f}
+	loop floor(distance between {_loc} and {_p}) * 2 - 1 times:
+		set {_f} to location 0.5 meters in front of {_f}
+		add {_f} to {_path::*}
+		loop blocks in radius blockRadius(block at {_f}) around {_f}:
+			isPassableBlock(loop-block) is false && loop-block is not slab or stairs
+			set {_ret} to false
+			exit 2 sections
+	
+	
+	
+	# Head
+	set {_f} to {_loc}
+	set {_v} to vector between {_f} and {_p}'s head location
+	set {_f}'s yaw to {_v}'s yaw
+	set {_f}'s pitch to {_v}'s pitch
+	
+	set {_f} to location 0.5 meters in front of {_f}
+	loop floor(distance between {_loc} and {_p}) * 2 - 1 times:
+		set {_f} to location 0.5 meters in front of {_f}
+		add {_f} to {_path::*}
+		loop blocks in radius blockRadius(block at {_f}) around {_f}:
+			isPassableBlock(loop-block) is false && loop-block is not slab or stairs or trapdoor
+			set {_ret} to false
+			exit 2 sections
+			
+			
+			
+	# Body
+	set {_f} to {_loc}
+	set {_v} to vector between {_f} and location above {_p}
+	set {_f}'s yaw to {_v}'s yaw
+	set {_f}'s pitch to {_v}'s pitch
+	
+	set {_f} to location 0.5 meters in front of {_f}
+	loop floor(distance between {_loc} and {_p}) * 2 - 1 times:
+		set {_f} to location 0.5 meters in front of {_f}
+		add {_f} to {_path::*}
+		loop blocks in radius blockRadius(block at {_f}) around {_f}:
+			isPassableBlock(loop-block) is false && loop-block is not slab or stairs or trapdoor
+			set {_ret} to false
+			exit 2 sections
+			
+	return {_ret}
+		
+			
+	
+	
+	
+	
+	
+	
+	

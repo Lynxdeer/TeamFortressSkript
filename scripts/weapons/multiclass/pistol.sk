@@ -1,0 +1,40 @@
+on rightclick with crossbow:
+
+	player's gamemode is not spectator
+	player's tool's name is "&6Pistol"
+	
+	cancel event
+	
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 0.15 seconds
+	
+	getAmmo(player) is not less than 1
+	modifyAmmo(player, 1)
+	
+	updateActionBar(player)
+	set player's tool to crossbow named "&6Pistol" with lore "&7Hit the bricks, chucklehead!" with nbt "{Charged:1b,ChargedProjectiles:[{id:""minecraft:arrow"",Count:1b}],Unbreakable:1,CustomModelData:30,HideFlags:63}"
+	
+	set {_loc} to location 1.6 meters above player
+		
+	play sound "custom.weapon.pistol_shoot" at player for all players
+	
+	set {_loc} to location 1.6 meters above location of player
+	set {_loc}'s pitch to {_loc}'s pitch + (random number between -3.5 and 3.5)
+	set {_loc}'s yaw to {_loc}'s yaw + (random number between -3.5 and 3.5)
+	loop 120 times:
+		loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+			isPassableBlock(loop-block) is false
+			canPass({_loc}) is false
+			exit 2 sections
+
+		set {_ent::*} to hitbox(player, {_loc})
+		loop all entities where [{_ent::*} contains input]:
+			loop-entity is not the player
+			tfdmg(random integer between 6 and 9, loop-entity, player)
+			exit 2 sections
+				
+		set {_loc} to location 0.5 meters in front of {_loc}
+		particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+			
+			
+			

@@ -1,0 +1,29 @@
+function createRagdoll(p: player):
+	
+	set {_loc} to location 0.1 meters above {_p}'s location
+	spawn armor stand at {_loc} with nbt "{ShowArms:1,NoBasePlate:1,DisabledSlots:4144959}"
+	set {_e} to last spawned armor stand
+	
+	teleport {_e} to {_loc}
+	set {_e}'s velocity to {_p}'s velocity
+	
+	set {_e}'s helmet to {_p}'s skull
+	
+	if {_p} is burning:
+		set tag "HasVisualFire" of {_e}'s nbt to true
+	
+	set {_v::leftleg::*} to (0, 1, 100)
+	loop 10 times:
+		
+		set {_s::*} to compound list tag "Pose;LeftLeg" of {_e}'s nbt
+		loop {_v::leftleg::*}:
+			if {_v::leftleg::%loop-index%} > 0:
+				set {_s::%loop-index%} to {_s::%loop-index%} + 1
+			
+		set compound list tag "Pose;LeftLeg" of {_e} to {_s::*}
+		
+		wait 1 tick
+		
+	debug(tag "Pose" of nbt compound of {_e})
+		
+	kill {_e}

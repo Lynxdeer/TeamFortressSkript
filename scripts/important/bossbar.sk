@@ -1,0 +1,19 @@
+#set {_args::*} to "&7helo", {BarColor}.valueOf("WHITE"), {BarStyle}.valueOf("SOLID")
+
+import:
+	org.bukkit.boss.BossBar
+	org.bukkit.boss.BarColor
+	org.bukkit.boss.BarStyle
+	org.bukkit.Bukkit
+
+on load:
+	{bossbar}.removeAll()
+	{bossbar}.setVisible(false)
+	delete {bossbar}
+	set {bossbar} to Bukkit.createBossBar("&7Loading...", BarColor.WHITE, BarStyle.SOLID)
+	loop all players:
+		{bossbar}.addPlayer(loop-player)
+	{bossbar}.setVisible(true)
+	
+on join:
+	{bossbar}.addPlayer(player)

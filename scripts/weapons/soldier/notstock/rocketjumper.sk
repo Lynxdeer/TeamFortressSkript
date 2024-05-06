@@ -1,0 +1,78 @@
+on right click with crossbow:
+
+	line 1 of player's tool's lore starts with "&7A no-damage launcher that allows you to soar into the skies."
+	player's gamemode is not spectator
+	
+	cancel event
+
+	cooldown of player's tool for player <= 0 seconds
+	set the cooldown of player's tool for player to 0.8 seconds
+	
+	set player's tool to getItem("rocketjumper")
+	getAmmo(player) is not less than 1
+	modifyAmmo(player, 1)
+	
+	set {_loc} to location 1.6 meters above location of player
+	play sound "custom.weapon.jumper_shoot" with volume 1 and pitch 1 at {_loc} for all players
+	set {_speed} to 2
+	loop 80 times:
+		loop {_speed} times:
+			if {_dontshoot} is set:
+				stop
+		
+			set {_loc} to location 0.5 meters in front of {_loc}
+		
+			particle(enchanted_hit, 1, 0, 0, 0, {_loc})
+			particle(enchanted_hit, 1, 0.1, 0.1, 0.1, {_loc})
+			
+			loop blocks in radius blockRadius(block at {_loc}) around {_loc}:
+				isPassableBlock(loop-block) is false
+				canPass({_loc}) is false
+				play sound "minecraft:custom.weapon.explode" with volume 2 and pitch (random integer between 0.7 and 1.3) at {_loc} for all players
+				particleExtra(smoke, 7, 0, 0, 0, {_loc}, 0.1)
+				particleExtra(cloud, 7, 0, 0, 0, {_loc}, 0.1)
+		
+			
+				loop entities in radius 4 around {_loc}:
+					
+					loop-entity is player
+					set {_dontshoot} to true
+				
+					set {_d} to (0.8 / distance between {_loc} and loop-entity)
+					set {_v} to vector from {_loc} to block above loop-entity
+					if {_d} is more than 2:
+						set {_d} to 2
+					if {_d} is less than 1:
+						set {_d} to 1
+					
+					push loop-entity {_v} with force abs({_d})
+					if loop-entity is sneaking:
+						set loop-entity's velocity to vector x component of loop-entity's velocity * 2, vector y component of loop-entity's velocity * 1.2, vector z component of loop-entity's velocity * 2 
+					else:
+						set loop-entity's velocity to vector x component of loop-entity's velocity * 1.2, vector y component of loop-entity's velocity * 1.1, vector z component of loop-entity's velocity * 1.2
+					tfdmg(round({_findmg}), loop-entity, player)
+				
+				exit 3 sections
+				
+			
+		wait 1 tick
+	wait 5 ticks
+	set metadata value "rocketjumping" of player to true
+	while isPassableBlock(block below player) is true:
+		if isPassableBlock(block at player) is not true:
+			stop loop
+		if player's gamemode is spectator:
+			stop loop
+		if player is not online:
+			stop loop
+		if metadata value "rocketjumping" of player is not true:
+			stop loop
+		set metadata value "rocketjumping" of player to true
+		wait 5 ticks
+		
+	delete metadata value "rocketjumping" of player
+		
+	
+	
+	
+	

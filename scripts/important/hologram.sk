@@ -1,0 +1,25 @@
+function damageHologram(e: entity, d: number, crit: integer = 0):
+	set {_r1} to random number between -1.2 and 1.2
+	set {_r2} to random number between 0.6 and 2.2
+	set {_r3} to random number between -1.2 and 1.2
+	set {_lines::1} to "&c- %{_d}%"
+	if {_crit} is 1:
+		set {_lines::1} to "&a&lCRITICAL HIT"
+		set {_lines::2} to "&c- %{_d}%"
+	if {_crit} is 2:
+		set {_lines::1} to "&e&lMINI CRIT"
+		set {_lines::2} to "&c- %{_d}%"
+	create new hologram with lines {_lines::*} that follows {_e} offset by ({_r1} meters right and {_r2} meters above and {_r3} meter infront) and store in {_holo}
+	make hologram {_holo} stop following # ❤
+	wait 1.5 second
+	delete hologram {_holo}
+	
+function healHologram(e: entity, d: number):
+	set {_r1} to random number between -1.2 and 1.2
+	set {_r2} to random number between 0.6 and 2.2
+	set {_r3} to random number between -1.2 and 1.2
+	set {_lines::1} to "&a+ %{_d}%"
+	create new hologram with lines {_lines::*} that follows {_e} offset by ({_r1} meters right and {_r2} meters above and {_r3} meter infront) and store in {_holo}
+	make hologram {_holo} stop following
+	wait 1.5 second
+	delete hologram {_holo}

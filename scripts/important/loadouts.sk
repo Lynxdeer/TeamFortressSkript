@@ -1,0 +1,89 @@
+command /loadout [<text>]:
+	aliases: /loadouts
+	trigger:
+		if "%region at player%" does not contain "bluespawn" or "redspawn":
+			send "&cYou must be in spawn to change your loadout!"
+			stop
+		send "&aOpened up the loadouts menu."
+		set {_gui} to chest inventory with 5 rows named "&f"
+		if {c::%player%} is 1 or 3 or 5 or 6 or 7 or 8:
+			send "&cNo custom loadouts are available for your class!"
+			stop
+		if {c::%player%} is 2:
+			set slot 10 of {_gui} to getItem("rocket")
+			set slot 11 of {_gui} to getItem("rocketjumper")
+			set slot 19 of {_gui} to getItem("shotgun")
+			set slot 28 of {_gui} to getItem("shovel")
+			set slot 29 of {_gui} to getItem("marketgardener")
+		if {c::%player%} is 4:
+			set slot 10 of {_gui} to getItem("grenade")
+			set slot 19 of {_gui} to getItem("sticky")
+			set slot 20 of {_gui} to getItem("stickyjumper")
+			set slot 28 of {_gui} to getItem("bottle")
+		if {c::%player%} is 9:
+			set slot 10 of {_gui} to getItem("revolver")
+			set slot 19 of {_gui} to getItem("inviswatch")
+			set slot 28 of {_gui} to getItem("spyknife")
+			set slot 29 of {_gui} to getItem("kunai")
+		open {_gui} to player
+		
+
+function getLSlot(i: item, class: number) :: integer:
+	if uncolored name of {_i} is "Scattergun" or "Rocket Launcher" or "Rocket Jumper" or "Flamethrower" or "Grenade Launcher" or "Minigun" or "Crusader's Crossbow" or "Sniper Rifle" or "Revolver":
+		return 1
+		stop
+	if uncolored name of {_i} is "Pistol" or "Stickybomb Launcher" or "Sticky Jumper" or "Sandvich" or "Medigun" or "Jarate" or "Invisibility Watch":
+		return 2
+		stop
+	if type of {_i} is iron sword: # kekw (all the melees are iron swords so no need for a list)
+		return 3
+		stop
+	if uncolored name of {_i} is "Sapper" or "Red Tape Recorder": # Special category just for spy. Woo.
+		return 4
+		stop
+		
+	if uncolored name of {_i} is "Shotgun":
+		if {_class} is 2 or 3 or 5: # Classes that use shotgun as secondary
+			return 2
+			stop
+		else: # ENGINEER GAMING
+			return 1
+			stop
+		
+	return 0
+	# This function should never return 0 unless the item is wrong.
+		
+		
+on inventory click:
+	
+	name of event-inventory is "&f"
+	cancel event
+	"%event-inventory%" is not "inventory of %player%"
+	event-item is not air
+	event-item is set
+	
+	if index of event-slot > 9 && index of event-slot < 19: # Primary slot
+		send "&eSet your primary to &6""%name of event-item%&6""."
+		loop items in player's inventory where [getLSlot(input, {c::%player%}) is 1]:
+			set loop-item to air
+		give event-item to player
+		
+	if index of event-slot > 18 && index of event-slot < 28: # Secondary slot
+		send "&eSet your secondary to &6""%name of event-item%&6""."
+		loop items in player's inventory where [getLSlot(input, {c::%player%}) is 2]:
+			set loop-item to air
+		give event-item to player
+		
+	if index of event-slot > 27 && index of event-slot < 38: # Melee slot
+		send "&eSet your melee to &6""%name of event-item%&6""."
+		loop items in player's inventory where [getLSlot(input, {c::%player%}) is 3]:
+			set loop-item to air
+		give event-item to player
+		
+	wait 1 tick
+	updateStats(player)
+		
+	
+	
+	
+	

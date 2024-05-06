@@ -1,0 +1,97 @@
+import:
+	org.bukkit.entity.Damageable
+
+function getHealth(p: player) :: number:
+	set {_ret} to {_p}'s health
+	set {_ret} to {_ret} + {_p}.getAbsorptionAmount()
+	set {_ret} to round({_ret} * 10)
+	return round({_ret})
+
+on heal:
+	updateActionBar(player)
+	
+on damage:
+	updateActionBar(victim)
+	
+function updateActionBar(p: player):
+	send action bar getActionBar({_p}) to {_p}
+	
+function getActionBar(p: player) :: string:
+	# First character is hp bar, after is negative space
+	if {_p}'s gamemode is spectator:
+		return ""
+	if {_p}'s tool is debug stick:
+		stop
+	set {_perc} to {_p}'s health/{_p}'s max health
+	
+	set {_spaces} to "   "
+	if getHealth({_p}) is less than 100:
+		set {_nspace} to ""
+		set {_spaces} to "    "
+	if getHealth({_p}) is less than 10:
+		set {_nspace} to ""
+		set {_spaces} to "     "
+	if getHealth({_p}) is more than 99:
+		set {_nspace} to ""
+		
+	set {_healthtype} to "" # full
+	
+	set {_color} to "&0"
+	if getHealth({_p}) > {_p}'s max health * 10:
+		set {_healthtype} to "" # Overheal
+		if {_p}.getAbsorptionAmount() <= 0.1:
+			{_p}.setAbsorptionAmount(0)
+			set {_healthtype} to ""
+		loop {healtarget::*}:
+			loop-value is {_p}
+			exit 2 sections
+		{_p}.setAbsorptionAmount({_p}.getAbsorptionAmount() - 0.1)
+	if {_perc} <= 0.99:
+		set {_healthtype} to "" # 75%
+	if {_perc} <= 0.5:
+		set {_healthtype} to "" # 50%
+	if {_perc} <= 0.25:
+		set {_color} to "&f"
+		if metadata value "lowflash" of {_p} is not 1:
+			set {_healthtype} to "" # 25%
+			set metadata value "lowflash" of {_p} to 1
+		else:
+			set {_healthtype} to "" # 25% flash
+			delete metadata value "lowflash" of {_p}
+	
+		
+		
+	# Resources
+	#
+	#  = Full	
+	#  = 25%
+	#  = 25% flash
+	#  = 50%
+	#  = 75%
+	#  = Overheal
+	#
+	#  = Ammo icon
+	#  = Metal icon
+		
+	set {_ammo} to getAmmo({_p})
+	if "%{_p}%" starts with ".":
+		send action bar "&c%getHealth({_p})% ❤   &7||  &6Ammo: %{_ammo}%" to {_p}
+		stop
+	if {c::%{_p}%} is 7:
+		set {_post} to "&7||  &6 %{_ammo}%  &7||  &7[&6Übercharge: &f%floor({uber::%{_p}%})%&f%%&7]"
+	else:
+		set {_post} to "&7||  &6 %{_ammo}%"
+	set {_post} to "%{_post}%%noneToEmpty(metadata value "acextra" of {_p})%"
+	
+	return "%{_healthtype}%%{_nspace}%%{_color}%%getHealth({_p})%%{_spaces}%%{_post}%"# to {_p}
+	
+every 4 ticks:
+# A while loop wouldnt do much else here so using an every loop here, probably gonna cringe at my bad code in the future
+	loop all players:
+		updateActionBar(loop-player)
+		if {c::%loop-player%} is 5:
+			set loop-player's hunger to 3
+			stop
+		feed loop-player
+		set loop-player's saturation to 20
+		

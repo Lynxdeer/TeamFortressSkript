@@ -1,0 +1,26 @@
+on damage:
+	damager's tool's name is "&6Sapper"
+	damager is a player
+	damager's gamemode is not spectator
+	cancel event
+	
+	distance between location above victim and location above damager is less than 2
+	cooldown of damager's tool for damager <= 0 seconds
+	set the cooldown of damager's tool for damager to 0.5 seconds
+	
+	cancel event
+	
+	set {_loc} to location 1.5 meters above location of damager
+
+	display name of victim contains "'s Sentry" or "'s Dispenser"
+	if {friendlyfire} is true:
+		set {_pass} to true
+	else:
+		if victim's display name does not start with getTeamColor(damager):
+			set {_pass} to true
+		if victim's display name starts with "&7Building...":
+			getTeam(metadata value "builder" of victim) is not getTeam(damager)
+			kill victim
+	{_pass} is true
+	set metadata value "sapped" of victim to 2
+	set metadata value "spysapper" of victim to damager

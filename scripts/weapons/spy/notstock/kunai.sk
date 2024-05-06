@@ -1,0 +1,28 @@
+import:
+	org.bukkit.event.player.PlayerItemHeldEvent as HotbarSwapEvent
+
+on HotbarSwapEvent:
+	set {_p} to event.getPlayer()
+	wait 1 tick
+	{_p}'s tool's name is "&6Conniver's Kunai"
+	while {_p}'s tool's name is "&6Conniver's Kunai":
+		set {_loc} to {_p}'s head location
+		set {_loc} to location 1.5 meters in front of {_loc}
+		set {_e::*} to all entities in radius 1.5 around {_loc} where [input is not {_p}]
+		if size of {_e::*} is less than 1:
+			custom model data of {_p}'s tool is not 12
+			set custom model data of {_p}'s tool to 12
+		loop {_e::*}:
+			loop-value's display name does not contain "'s Sentry" or "'s Dispenser"
+			set {_v1} to vector from yaw loop-value's yaw and pitch 0
+			set {_v2} to vector from yaw {_p}'s yaw and pitch 0
+			if ({_v1} dot {_v2}) is more than 0:
+				custom model data of {_p}'s tool is not 13
+				set custom model data of {_p}'s tool to 13
+				set {_stop} to true
+			else:
+				{_stop} is not true
+				custom model data of {_p}'s tool is not 12
+				set custom model data of {_p}'s tool to 12
+			
+		wait 2 ticks

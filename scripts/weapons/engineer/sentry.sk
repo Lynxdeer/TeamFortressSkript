@@ -1,0 +1,121 @@
+on quit:
+	delete {-sentryspot::%player%::*}
+	if {hassentry::%player%} is set:
+		kill (metadata value "sentry" of player parsed as entity)
+	
+
+function buildSentry(p: player, loc: location, health: number = 200):
+	{_p}'s gamemode is not spectator
+	if block below {_loc} is air:
+		set {_loc} to location below {_loc}
+	if block at {_loc} is not air or grass or dead bush:
+		while block at {_loc} is not air or grass or dead bush:
+			set {_loc} to location above {_loc}
+	send "&eSentry goin' up!" to {_p}
+	set {_team} to getTeam({_p})
+	set {_color} to getTeamColor({_p})
+	spawn a baby zombie at {_loc}
+	set {_e} to last spawned zombie
+	set {_e}'s nbt to "{Silent:1,NoAI:1}"
+	set helmet of {_e} to dispenser
+	
+	set {_hp} to {_health} / 10
+	set max health of {_e} to 20
+	set health of {_e} to {_hp}
+	set metadata value "builder" of {_e} to {_p}
+	set metadata value "sentry" of {_p} to {_e}
+	set chestplate of {_e} to netherite chestplate
+	set leggings of {_e} to netherite leggings
+	delete {_e}'s vehicle if {_e}'s vehicle is set
+	set boots of {_e} to netherite boots
+	
+	if {_h} is more than 200:
+		set {_h} to 200
+	set {_h} to 0
+	while (health of {_e} * 10) > {_h}:
+		add 2 to {_h}
+		if metadata value "buildspeed" of {_e} is true:
+			delete metadata value "buildspeed" of {_e}
+			add 10 to {_h}
+		set the display name of {_e} to "&7Building... &7(%{_h} * 0.5%&7%%) &8[%health of {_e} * 10%&8]"
+		wait 1 tick
+		
+	
+	while {_e} is alive:
+		set {_health} to round({_e}'s health * 10)
+		if {_health} is more than 200:
+			set {_e}'s health to 20
+		if metadata value "sapped" of {_e} is set:
+			set the display name of {_e} to "&bSapping... &7(%{_health}%&7/200)"
+			play sound "custom.weapon.sapper" with volume 0.3 and pitch 1 at {_e} for all players
+			tfdmg(10, {_e}, metadata value "spysapper" of {_e}, 5)
+			set {_cont} to false
+		else:
+			set {_cont} to true
+		if {_cont} is not false:
+			set the display name of {_e} to "%{_color}%%{_p}%%{_color}%'s Sentry &7(%{_health}%&7/200)"
+		
+		loop entities in radius 20 around {_e}:
+		
+			{_cont} is not false
+			loop-entity is not {_e}
+			loop-entity is not {_p}
+			set {_b} to metadata value "builder" of loop-entity
+			getTeam({_b}) is not getTeam({_p})
+			loop-entity is alive
+			loop-entity's gamemode is not spectator or creative
+			{_b} is not {_p}
+			"%potion effects of loop-entity%" does not contain "invisibility"
+			entityIsProper(loop-entity) is true
+			getTeamColor({_p}) is not (loop-entity's prefix)
+			getTeam({_p}) is not getTeam(loop-entity)
+			loop-entity's display name does not contain {_color}
+			
+			set {_l} to {_e}'s location
+			set {_f} to location above {_l}
+			set {_v} to vector from {_f} to location above loop-entity
+			set {_l}'s yaw to {_v}'s yaw
+			set {_l}'s pitch to {_v}'s pitch
+			
+			set {_f} to location above {_l}
+			loop floor(distance between {_f} and loop-entity) * 2 times:
+				set {_f} to location 0.5 meters in front of {_f}
+				loop blocks in radius blockRadius(block at {_f}) around {_f}:
+					isPassableBlock(loop-block) is false
+					canPass({_f}) is false
+					delete {_path::*}
+					exit 2 sections
+				add {_f} to {_path::*}
+			teleport {_e} to {_l}
+			
+			
+			loop {_path::*}:
+				set {_ptl} to {_path::%loop-index%}
+				particle(crit, 1, 0, 0, 0, {_ptl})
+				particle(crit, 2, 0.1, 0.1, 0.1, {_ptl})
+			{_path::*} is set
+			if {-sentryspot::%{_p}%::*} does not contain loop-entity:
+				add loop-entity to {-sentryspot::%{_p}%::*}
+				add loop-entity to {_hit::*}
+				play sound "custom.weapon.sentry_spot" with volume 0.5 and pitch 1 at {_e} for all players
+				play sound "custom.weapon.sentry_spot" with volume 1 and pitch 1 for loop-entity
+				wait 10 ticks
+			
+			tfdmg(15, loop-entity, {_p}, 4)
+			delete {_path::*}
+			play sound "custom.weapon.sentry_shoot" with volume 0.5 and pitch 1 at {_e} for all players
+		
+		loop {-sentryspot::%{_p}%::*}:
+			set {_y} to {-sentryspot::%{_p}%::%loop-index%}
+			{_hit::*} does not contain {_y}
+			remove {_y} from {-sentryspot::%{_p}%::*}
+			
+		wait 5 ticks
+		
+	delete {-sentryspot::%{_p}%::*}
+	delete {hassentry::%{_p}%}
+	play sound "custom.building_explode" with volume 0.1 at {_e} for all players
+	particleExtra(crit, 50, 0, 0, 0, {_e}, 0.1)
+	
+	
+	
